@@ -1,0 +1,63 @@
+# Timber Mechanic - Example Configuration
+
+# The Timber mechanic allows players to chop down entire trees at once.
+# When a player breaks a log block with a tool that has this mechanic enabled,
+# all connected logs (and optionally leaves) of the same tree will be broken automatically.
+
+# Example Diamond Axe with Timber:
+diamond_axe:
+  material: DIAMOND_AXE
+  Mechanics:
+    timber:
+      limit: 100              # Maximum number of blocks to break (logs + leaves)
+      max_height: 32          # Maximum height difference from the origin block
+      toggleable: true        # Whether players can toggle this mechanic on/off (right-click)
+      break_leaves: false     # Whether to break leaves as well
+      whitelist:              # Optional: Specific logs that can be broken
+        - OAK_LOG             # Vanilla materials
+        - SPRUCE_LOG
+        - BIRCH_LOG
+        - custom_nexo_log     # Nexo custom block IDs
+
+# Example Iron Axe with Timber (auto-breaks leaves):
+iron_axe_with_leaves:
+  material: IRON_AXE
+  Mechanics:
+    timber:
+      limit: 150
+      max_height: 40
+      toggleable: true
+      break_leaves: true      # Will also break leaves around the tree
+      whitelist: []           # Empty whitelist = works on all default tree logs
+
+# Example Stone Axe with limited range:
+stone_axe_limited:
+  material: STONE_AXE
+  Mechanics:
+    timber:
+      limit: 30               # Only breaks up to 30 blocks
+      max_height: 20          # Only reaches 20 blocks high
+      toggleable: false       # Always active
+      break_leaves: false
+      whitelist:
+        - OAK_LOG
+        - SPRUCE_LOG
+
+# How it works:
+# 1. When a player breaks a log with a timber tool, the mechanic activates
+# 2. It searches for connected logs of the same type (vertically and diagonally)
+# 3. All found logs (up to the limit) are broken automatically
+# 4. If break_leaves is true, nearby leaves are also broken
+# 5. If toggleable is true, players can toggle the mechanic by right-clicking with the tool
+
+# Toggle Messages (configured in config.yml):
+# messages:
+#   timber:
+#     enabled: "<green>Timber enabled"
+#     disabled: "<red>Timber disabled"
+
+# Notes:
+# - The mechanic respects protection plugins (like WorldGuard, GriefPrevention, etc.)
+# - If whitelist is empty, it works on all default tree logs
+# - Works with both vanilla and Nexo custom blocks
+# - Only breaks logs of the same type (e.g., oak logs only break oak logs)

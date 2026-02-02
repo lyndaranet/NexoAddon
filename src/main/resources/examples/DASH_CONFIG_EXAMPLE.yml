@@ -1,0 +1,89 @@
+# Dash Mechanic Configuration Example
+# This mechanic allows players to perform a quick dash similar to Jett's dash from Valorant
+# Activate by right-clicking with the item
+
+jett_dash_sword:
+  Mechanics:
+    dash:
+      # Power of the dash (horizontal speed multiplier)
+      # Higher values = faster dash
+      # Default: 2.0
+      power: 2.5
+
+      # Vertical boost applied during dash
+      # Positive values make you dash slightly upward
+      # Negative values make you dash downward
+      # Default: 0.5
+      vertical_boost: 0.3
+
+      # Cooldown in seconds between dashes
+      # Default: 5
+      cooldown: 3
+
+      # Whether the player needs to be sneaking to dash
+      # Default: false
+      require_sneaking: false
+
+      # Durability cost per dash (0 = no durability loss)
+      # Only applies to items with durability
+      # Default: 0
+      durability_cost: 5
+
+      # Particle settings
+      particle:
+        # Particle type (see: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html)
+        # Popular options: CLOUD, SOUL_FIRE_FLAME, FLAME, SMOKE, EXPLOSION, END_ROD, SONIC_BOOM
+        # Default: CLOUD
+        type: "SOUL_FIRE_FLAME"
+
+        # Amount of particles to spawn
+        # Default: 20
+        amount: 30
+
+      # Sound settings
+      sound:
+        # Sound type (see: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)
+        # Popular options: ENTITY_ENDER_DRAGON_FLAP, ENTITY_PHANTOM_FLAP, ENTITY_WITHER_SHOOT, ITEM_TRIDENT_RIPTIDE_1
+        # Default: ENTITY_ENDER_DRAGON_FLAP
+        type: "ENTITY_PHANTOM_FLAP"
+
+        # Sound volume (0.0 to 1.0+)
+        # Default: 1.0
+        volume: 1.5
+
+        # Sound pitch (0.5 to 2.0)
+        # Higher = higher pitched
+        # Default: 1.5
+        pitch: 1.8
+
+      # Message shown when dash is on cooldown
+      # Use {time} as placeholder for remaining seconds
+      # Supports MiniMessage format (https://docs.advntr.dev/minimessage/format.html)
+      # Default: "<red>Dash is on cooldown! Wait {time} seconds."
+      cooldown_message: "<red>⚡ Dash on cooldown! Wait <yellow>{time}s</yellow>"
+
+# Advanced Example: High-mobility dash with visual effects
+advanced_dash_weapon:
+  Mechanics:
+    dash:
+      power: 3.0
+      vertical_boost: 0.8
+      cooldown: 2
+      require_sneaking: true
+      durability_cost: 10
+      particle:
+        type: "SONIC_BOOM"
+        amount: 50
+      sound:
+        type: "ITEM_TRIDENT_RIPTIDE_3"
+        volume: 2.0
+        pitch: 2.0
+      cooldown_message: "<gradient:#ff0000:#00ffff>✈ Dash recharging... {time}s</gradient>"
+
+# Beginner Example: Simple dash with minimal settings
+simple_dash_tool:
+  Mechanics:
+    dash:
+      power: 2.0
+      vertical_boost: 0.4
+      cooldown: 5

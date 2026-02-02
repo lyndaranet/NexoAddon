@@ -34,6 +34,14 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.42</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -51,10 +59,10 @@
                 <configuration>
                     <minimizeJar>true</minimizeJar>
                     <relocations>
-                        <relocation>
-                            <pattern>com.jeff_media.updatechecker</pattern>
-                            <shadedPattern>zone.vao.thirdparties.updatechecker</shadedPattern>
-                        </relocation>
+<!--                        <relocation>-->
+<!--                            <pattern>com.jeff_media.updatechecker</pattern>-->
+<!--                            <shadedPattern>zone.vao.thirdparties.updatechecker</shadedPattern>-->
+<!--                        </relocation>-->
                         <relocation>
                             <pattern>com.jeff_media.customblockdata</pattern>
                             <shadedPattern>zone.vao.thirdparties.customblockdata</shadedPattern>
@@ -164,12 +172,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>ca.bkaw</groupId>
-            <artifactId>paper-nms</artifactId>
-            <version>1.21.8-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.21.8-R0.1-SNAPSHOT</version>
@@ -190,7 +192,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
+            <version>1.18.42</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -215,12 +217,6 @@
             <artifactId>exp4j</artifactId>
             <version>0.4.8</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jeff_media</groupId>
-            <artifactId>SpigotUpdateChecker</artifactId>
-            <version>3.0.4</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.lumine</groupId>

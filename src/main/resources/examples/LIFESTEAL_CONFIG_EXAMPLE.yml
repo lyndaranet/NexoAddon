@@ -1,0 +1,49 @@
+# LifeSteal Mechanic Configuration Example
+# This mechanic allows weapons to steal life from enemies
+
+vampire_sword:
+  material: DIAMOND_SWORD
+  displayname: "<gradient:#FF0000:#8B0000>Vampire Sword</gradient>"
+  lore:
+    - "<gray>Steals life from your enemies"
+    - "<red>+10% Life Steal"
+  Mechanics:
+    lifesteal:
+      # Percentage of damage dealt that is converted to health
+      # Example: 10.0 means 10% of damage dealt heals you
+      percentage: 10.0
+
+      # Minimum heal amount per hit (0 = no minimum)
+      # Useful to ensure small hits still provide some healing
+      min_heal: 0.5
+
+      # Maximum heal amount per hit (0 = no maximum)
+      # Prevents excessive healing from single powerful hits
+      max_heal: 5.0
+
+      # Whether the mechanic affects undead mobs (zombies, skeletons, etc.)
+      # Set to false if you want undead to be immune to life steal
+      affect_undead: false
+
+blood_axe:
+  material: NETHERITE_AXE
+  displayname: "<gradient:#8B0000:#FF0000>Blood Axe</gradient>"
+  lore:
+    - "<gray>Drains the life force of enemies"
+    - "<red>+25% Life Steal"
+  Mechanics:
+    lifesteal:
+      percentage: 25.0
+      min_heal: 1.0
+      max_heal: 10.0
+      affect_undead: true
+
+# Simple example with minimal configuration
+basic_vampire_dagger:
+  material: IRON_SWORD
+  displayname: "<red>Vampire Dagger"
+  Mechanics:
+    lifesteal:
+      # Only the percentage is required
+      # Other values will use defaults (no min/max, undead not affected)
+      percentage: 5.0

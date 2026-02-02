@@ -16,148 +16,196 @@ import java.util.Map;
 @Getter
 public class Mechanics {
 
-  private final String id;
-  private Repair repair;
-  private BigMining bigMining;
-  private VeinMiner veinMiner;
-  private BedrockBreak bedrockBreak;
-  private Aura aura;
-  private SpawnerBreak spawnerBreak;
-  private MiningTools miningTools;
-  private DropExperience dropExperience;
-  private Infested infested;
-  private KillMessage killMessage;
-  private Stackable stackable;
-  private Decay decay;
-  private ShiftBlock shiftBlock;
-  private BottledExp bottledExp;
-  private Unstackable unstackable;
-  private BlockAura blockAura;
-  private Signal signal;
-  private Remember remember;
-  private Enchantify enchantify;
-  private AutoCatch autoCatch;
-  private UniqueId uniqueId;
-  private InventoryType inventoryType;
+    private final String id;
+    private Repair repair;
+    private BigMining bigMining;
+    private VeinMiner veinMiner;
+    private Timber timber;
+    private BedrockBreak bedrockBreak;
+    private Aura aura;
+    private SpawnerBreak spawnerBreak;
+    private MiningTools miningTools;
+    private DropExperience dropExperience;
+    private Infested infested;
+    private KillMessage killMessage;
+    private Stackable stackable;
+    private Decay decay;
+    private ShiftBlock shiftBlock;
+    private BottledExp bottledExp;
+    private Unstackable unstackable;
+    private BlockAura blockAura;
+    private Signal signal;
+    private Remember remember;
+    private Enchantify enchantify;
+    private AutoCatch autoCatch;
+    private UniqueId uniqueId;
+    private InventoryType inventoryType;
+    private Telekinesis telekinesis;
+    private LifeSteal lifeSteal;
+    private Dash dash;
 
-  public Mechanics(String id) {
-    this.id = id;
-  }
+    public Mechanics(String id) {
+        this.id = id;
+    }
 
-  public void setRepair(double ration, int fixedAmount, List<Material> materials, List<String> nexoIds, List<Material> materialsBlacklist, List<String> nexoIdsBlacklist) {
-    this.repair = new Repair(ration, fixedAmount, materials, nexoIds, materialsBlacklist, nexoIdsBlacklist);
-  }
+    public void setRepair(double ration, int fixedAmount, List<Material> materials, List<String> nexoIds,
+        List<Material> materialsBlacklist, List<String> nexoIdsBlacklist) {
+        this.repair = new Repair(ration, fixedAmount, materials, nexoIds, materialsBlacklist, nexoIdsBlacklist);
+    }
 
-  public void setBigMining(int radius, int depth, boolean switchable, List<Material> materials) {
-    this.bigMining = new BigMining(radius, depth, switchable, materials);
-  }
+    public void setBigMining(int radius, int depth, boolean switchable, List<Material> materials) {
+        this.bigMining = new BigMining(radius, depth, switchable, materials);
+    }
 
-  public void setVeinMiner(int distance, boolean toggleable, boolean sameMaterial, int limit, List<Material> materials, List<String> nexoIds) {
-    this.veinMiner = new VeinMiner(distance, toggleable, sameMaterial, limit, materials, nexoIds);
-  }
+    public void setVeinMiner(int distance, boolean toggleable, boolean sameMaterial, int limit,
+        List<Material> materials, List<String> nexoIds) {
+        this.veinMiner = new VeinMiner(distance, toggleable, sameMaterial, limit, materials, nexoIds);
+    }
 
-  public void setBedrockBreak(int hardness, double probability, int durabilityCost, boolean disableOnFirstLayer) {
-    this.bedrockBreak = new BedrockBreak(hardness, probability, durabilityCost, disableOnFirstLayer);
-  }
+    public void setTimber(int limit, int maxHeight, boolean toggleable, boolean breakLeaves, List<Material> logs,
+        List<String> nexoLogs) {
+        this.timber = new Timber(limit, maxHeight, toggleable, breakLeaves, logs, nexoLogs);
+    }
 
-  public void setAura(Particle particle, String type, String formula) {
-    this.aura = new Aura(particle, type, formula);
-  }
+    public void setBedrockBreak(int hardness, double probability, int durabilityCost, boolean disableOnFirstLayer) {
+        this.bedrockBreak = new BedrockBreak(hardness, probability, durabilityCost, disableOnFirstLayer);
+    }
 
-  public void setMiningTools(final List<Material> materials, final List<String> nexoIds, final String type) {
-    this.miningTools = new MiningTools(materials, nexoIds, type);
-  }
+    public void setAura(Particle particle, String type, String formula) {
+        this.aura = new Aura(particle, type, formula);
+    }
 
-  public void setSpawnerBreak(double probability, boolean dropExperience) {
-    this.spawnerBreak = new SpawnerBreak(probability, dropExperience);
-  }
+    public void setMiningTools(final List<Material> materials, final List<String> nexoIds, final String type) {
+        this.miningTools = new MiningTools(materials, nexoIds, type);
+    }
 
-  public void setDropExperience(double experience) {
-    this.dropExperience = new DropExperience(experience);
-  }
+    public void setSpawnerBreak(double probability, boolean dropExperience) {
+        this.spawnerBreak = new SpawnerBreak(probability, dropExperience);
+    }
 
-  public void setInfested(List<EntityType> entities, List<String> mythicMobs, double probability, String selector, boolean particles, boolean drop, boolean safeSpawn) {
-    this.infested = new Infested(entities, mythicMobs, probability, selector, particles, drop, safeSpawn);
-  }
-  
-  public void setKillMessage(String deathMessage) {
-    this.killMessage = new KillMessage(deathMessage);
-  }
-  
-  public void setStackable(String next, String group){
-    this.stackable = new Stackable(next, group);
-  }
+    public void setDropExperience(double experience) {
+        this.dropExperience = new DropExperience(experience);
+    }
 
-  public void setDecay(int time, double chance, List<Material> base, List<String> nexoBase, int radius){this.decay = new Decay(time, chance, base, nexoBase, radius);}
+    public void setInfested(List<EntityType> entities, List<String> mythicMobs, double probability, String selector,
+        boolean particles, boolean drop, boolean safeSpawn) {
+        this.infested = new Infested(entities, mythicMobs, probability, selector, particles, drop, safeSpawn);
+    }
 
-  public void setShiftBlock(String replaceTo, int time, List<Material> materials, List<String> nexoIds, boolean onInteract, boolean onDestroy, boolean onPlace){this.shiftBlock = new ShiftBlock(replaceTo, time, materials, nexoIds, onInteract, onDestroy, onPlace);}
+    public void setKillMessage(String deathMessage) {
+        this.killMessage = new KillMessage(deathMessage);
+    }
 
-  public void setBottledExp(Double ration, int cost) {this.bottledExp = new BottledExp(ration, cost);}
+    public void setStackable(String next, String group) {
+        this.stackable = new Stackable(next, group);
+    }
 
-  public void setUnstackable(String next, String give, List<Material> materials, List<String> nexoIds) {this.unstackable = new Unstackable(next, give, materials, nexoIds);}
+    public void setDecay(int time, double chance, List<Material> base, List<String> nexoBase, int radius) {
+        this.decay = new Decay(time, chance, base, nexoBase, radius);
+    }
 
-  public void setBlockAura(Particle particle, String xOffset, String yOffset, String zOffset, int amount, double deltaX, double deltaY, double deltaZ, double speed, boolean force) {
-    this.blockAura = new BlockAura(particle, xOffset, yOffset, zOffset, amount, deltaX, deltaY, deltaZ, speed, force);
-  }
+    public void setShiftBlock(String replaceTo, int time, List<Material> materials, List<String> nexoIds,
+        boolean onInteract, boolean onDestroy, boolean onPlace) {
+        this.shiftBlock = new ShiftBlock(replaceTo, time, materials, nexoIds, onInteract, onDestroy, onPlace);
+    }
 
-  public void setSignal(int radius, double channel, String role) {
-    this.signal = new Signal(radius, channel, role);
-  }
+    public void setBottledExp(Double ration, int cost) {
+        this.bottledExp = new BottledExp(ration, cost);
+    }
 
-  public void setRemember(boolean isForRemember) {
-    this.remember = new Remember(isForRemember);
-  }
+    public void setUnstackable(String next, String give, List<Material> materials, List<String> nexoIds) {
+        this.unstackable = new Unstackable(next, give, materials, nexoIds);
+    }
 
-  public void setEnchantify(Map<Enchantment, Integer> enchants, Map<Enchantment, Integer> limits, List<Material> materials, List<String> nexoIds, List<Material> materialsBlacklist, List<String> nexoIdsBlacklist) {
-    this.enchantify = new Enchantify(enchants, limits, materials, nexoIds, materialsBlacklist, nexoIdsBlacklist);
-  }
+    public void setBlockAura(Particle particle, String xOffset, String yOffset, String zOffset, int amount,
+        double deltaX, double deltaY, double deltaZ, double speed, boolean force) {
+        this.blockAura = new BlockAura(particle, xOffset, yOffset, zOffset, amount, deltaX, deltaY, deltaZ, speed,
+            force);
+    }
 
-  public void setAutoCatch(boolean toggable, boolean recast) {
-    this.autoCatch = new AutoCatch(toggable, recast);
-  }
+    public void setSignal(int radius, double channel, String role) {
+        this.signal = new Signal(radius, channel, role);
+    }
 
-  public void setUniqueId(boolean enabled) {
-      this.uniqueId = new UniqueId(enabled);
-  }
+    public void setRemember(boolean isForRemember) {
+        this.remember = new Remember(isForRemember);
+    }
 
-  public void setInventoryType(org.bukkit.event.inventory.InventoryType inventoryType, Component title) { this.inventoryType = new InventoryType(inventoryType, title); }
+    public void setEnchantify(Map<Enchantment, Integer> enchants, Map<Enchantment, Integer> limits,
+        List<Material> materials, List<String> nexoIds, List<Material> materialsBlacklist,
+        List<String> nexoIdsBlacklist) {
+        this.enchantify = new Enchantify(enchants, limits, materials, nexoIds, materialsBlacklist, nexoIdsBlacklist);
+    }
 
-  public static void registerListeners(NexoAddon plugin){
+    public void setAutoCatch(boolean toggable, boolean recast) {
+        this.autoCatch = new AutoCatch(toggable, recast);
+    }
 
-    registerListener(new AutoCatch.AutoCatchListener(), plugin);
+    public void setUniqueId(boolean enabled) {
+        this.uniqueId = new UniqueId(enabled);
+    }
 
-    registerListener(new BigMining.BigMiningListener(), plugin);
-    registerListener(new BlockAura.BlockAuraListener(), plugin);
-    registerListener(new BottledExp.BottledExpListener(), plugin);
+    public void setInventoryType(org.bukkit.event.inventory.InventoryType inventoryType, Component title) {
+        this.inventoryType = new InventoryType(inventoryType, title);
+    }
 
-    registerListener(new Decay.DecayListener(), plugin);
-    registerListener(new DropExperience.DropExperienceListener(), plugin);
+    public void setTelekinesis(boolean enabled) {
+        this.telekinesis = new Telekinesis(enabled);
+    }
 
-    registerListener(new Enchantify.EnchantifyListener(), plugin);
+    public void setLifeSteal(double percentage, double minHeal, double maxHeal, boolean affectUndead) {
+        this.lifeSteal = new LifeSteal(percentage, minHeal, maxHeal, affectUndead);
+    }
 
-    registerListener(new Infested.InfestedListener(), plugin);
-    registerListener(new InventoryType.InventoryTypeListener(), plugin);
+    public void setDash(double power, double verticalBoost, int cooldown, boolean requireSneaking,
+                        String particleType, int particleAmount, String soundType, float soundVolume,
+                        float soundPitch, String cooldownMessage, int durabilityCost) {
+        this.dash = new Dash(power, verticalBoost, cooldown, requireSneaking, particleType, particleAmount,
+            soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
+    }
 
-    registerListener(new KillMessage.KillMessageListener(), plugin);
+    public static void registerListeners(NexoAddon plugin) {
 
-    registerListener(new MiningTools.MiningToolsListener(), plugin);
+        registerListener(new AutoCatch.AutoCatchListener(), plugin);
 
-    registerListener(new UniqueId.UniqueIdListener(), plugin);
+        registerListener(new BigMining.BigMiningListener(), plugin);
+        registerListener(new BlockAura.BlockAuraListener(), plugin);
+        registerListener(new BottledExp.BottledExpListener(), plugin);
 
-    registerListener(new Remember.RememberListener(), plugin);
-    registerListener(new Repair.RepairListener(), plugin);
+        registerListener(new Dash.DashListener(), plugin);
+        registerListener(new Decay.DecayListener(), plugin);
+        registerListener(new DropExperience.DropExperienceListener(), plugin);
 
-    registerListener(new ShiftBlock.ShiftBlockListener(), plugin);
-    registerListener(new SpawnerBreak.SpawnerBreakListener(), plugin);
-    registerListener(new Stackable.StackableListener(), plugin);
+        registerListener(new Enchantify.EnchantifyListener(), plugin);
 
-    registerListener(new Unstackable.UnstackableListener(), plugin);
+        registerListener(new Infested.InfestedListener(), plugin);
+        registerListener(new InventoryType.InventoryTypeListener(), plugin);
 
-    registerListener(new Signal.SignalListener(), plugin);
-    registerListener(new VeinMiner.VeinMinerListener(), plugin);
-  }
+        registerListener(new KillMessage.KillMessageListener(), plugin);
 
-  private static void registerListener(Listener listener, NexoAddon plugin){
-    plugin.getServer().getPluginManager().registerEvents(listener, plugin);
-  }
+        registerListener(new LifeSteal.LifeStealListener(), plugin);
+
+        registerListener(new MiningTools.MiningToolsListener(), plugin);
+
+        registerListener(new UniqueId.UniqueIdListener(), plugin);
+
+        registerListener(new Remember.RememberListener(), plugin);
+        registerListener(new Repair.RepairListener(), plugin);
+
+        registerListener(new ShiftBlock.ShiftBlockListener(), plugin);
+        registerListener(new SpawnerBreak.SpawnerBreakListener(), plugin);
+        registerListener(new Stackable.StackableListener(), plugin);
+
+        registerListener(new Telekinesis.TelekinesisListener(), plugin);
+        registerListener(new Timber.TimberListener(), plugin);
+
+        registerListener(new Unstackable.UnstackableListener(), plugin);
+
+        registerListener(new Signal.SignalListener(), plugin);
+        registerListener(new VeinMiner.VeinMinerListener(), plugin);
+    }
+
+    private static void registerListener(Listener listener, NexoAddon plugin) {
+        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+    }
 }

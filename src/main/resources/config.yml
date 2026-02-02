@@ -15,6 +15,9 @@ messages:
   veinminer:
     enabled: <green>VeinMiner on
     disabled: <red>VeinMiner off
+  timber:
+    enabled: <green>Timber on
+    disabled: <red>Timber off
   bottledexp:
     not_enough_exp: <red>Not enough experience to convert
   autocatch:

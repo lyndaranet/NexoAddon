@@ -43,11 +43,11 @@ public class BlockUtil {
     PersistentDataContainer pdc = new CustomBlockData(location.getBlock(), NexoAddon.getInstance());
     pdc.set(new NamespacedKey(NexoAddon.getInstance(), "shiftblock_target"), PersistentDataType.STRING, target.getItemID());
     finalLocation.getBlock().setType(Material.AIR);
-    NexoAddon.instance.foliaLib.getScheduler().runLater(() -> NexoBlocks.place(to.getItemID(), finalLocation), 1);
+    NexoAddon.getInstance().getFoliaLib().getScheduler().runLater(() -> NexoBlocks.place(to.getItemID(), finalLocation), 1);
 
     if(time <= 0)
       return;
-    NexoAddon.instance.foliaLib.getScheduler().runLaterAsync( laterAsync -> {
+    NexoAddon.getInstance().getFoliaLib().getScheduler().runLaterAsync( laterAsync -> {
       if(!NexoBlocks.isCustomBlock(finalLocation.getBlock()) ||
           !NexoBlocks.customBlockMechanic(finalLocation).getItemID().equalsIgnoreCase(to.getItemID())
       ) {
@@ -56,11 +56,11 @@ public class BlockUtil {
         pdc.remove(new NamespacedKey(NexoAddon.getInstance(), "shiftblock_target"));
         return;
       }
-      NexoAddon.instance.foliaLib.getScheduler().runNextTick(replaceToAir -> {
+      NexoAddon.getInstance().getFoliaLib().getScheduler().runNextTick(replaceToAir -> {
         finalLocation.getBlock().setType(Material.AIR);
       });
 
-      NexoAddon.instance.foliaLib.getScheduler().runLater(() -> NexoBlocks.place(target.getItemID(), finalLocation), 1L);
+      NexoAddon.getInstance().getFoliaLib().getScheduler().runLater(() -> NexoBlocks.place(target.getItemID(), finalLocation), 1L);
 
       processedShiftblocks.remove(finalLocation);
       pdc.remove(new NamespacedKey(NexoAddon.getInstance(), "shiftblock_target"));
@@ -87,15 +87,15 @@ public class BlockUtil {
     if(FurnitureHelpers.furnitureDye(templateEntity) != null) {
       FurnitureHelpers.furnitureDye(newOne, FurnitureHelpers.furnitureDye(templateEntity));
     }
-    NexoAddon.instance.foliaLib.getScheduler().runLater(() -> {
+    NexoAddon.getInstance().getFoliaLib().getScheduler().runLater(() -> {
       previous.removeBaseEntity(itemDisplay);
       NexoFurniture.furnitureMechanic(finalLocation).getHitbox().refreshHitboxes(newOne, to);
     }, 3L);
 
     if(time <= 0)
       return;
-    NexoAddon.instance.foliaLib.getScheduler().runLaterAsync(() -> {
-      NexoAddon.instance.foliaLib.getScheduler().runNextTick(shiftBlock -> {
+    NexoAddon.getInstance().getFoliaLib().getScheduler().runLaterAsync(() -> {
+      NexoAddon.getInstance().getFoliaLib().getScheduler().runNextTick(shiftBlock -> {
         if(!NexoFurniture.isFurniture(finalLocation) ||
             !NexoFurniture.furnitureMechanic(finalLocation).getItemID().equalsIgnoreCase(to.getItemID())
         ) {
@@ -122,14 +122,14 @@ public class BlockUtil {
     int radius = 10;
     World world = location.getWorld();
 
-    if(!NexoAddon.instance.getIsDecay()) return;
+    if(!NexoAddon.getInstance().getIsDecay()) return;
 
     if (world == null) {
       return;
     }
 
-    NexoAddon.instance.foliaLib.getScheduler().runAsync(startDecayA -> {
-      NexoAddon.instance.foliaLib.getScheduler().runAtLocation(location.clone(), startDecay -> {
+    NexoAddon.getInstance().getFoliaLib().getScheduler().runAsync(startDecayA -> {
+      NexoAddon.getInstance().getFoliaLib().getScheduler().runAtLocation(location.clone(), startDecay -> {
         for (int x = -radius; x <= radius; x++) {
           for (int y = -radius; y <= radius; y++) {
             for (int z = -radius; z <= radius; z++) {
@@ -159,7 +159,7 @@ public class BlockUtil {
   }
 
   private static void startDecayTimer(Block block, Decay decay) {
-    NexoAddon.instance.foliaLib.getScheduler().runAtLocationTimer(block.getLocation(), decayTimer -> {
+    NexoAddon.getInstance().getFoliaLib().getScheduler().runAtLocationTimer(block.getLocation(), decayTimer -> {
       if (block.getType() == Material.AIR && !NexoBlocks.isCustomBlock(block)) {
         processedCustomBlocks.remove(block.getLocation());
         decayTimer.cancel();
@@ -169,7 +169,7 @@ public class BlockUtil {
       boolean isConnected = isConnectedToBase(block, decay);
 
       if (!isConnected && Math.random() <= decay.chance()) {
-        NexoAddon.instance.foliaLib.getScheduler().runNextTick(removeBlock -> NexoBlocks.remove(block.getLocation()));
+        NexoAddon.getInstance().getFoliaLib().getScheduler().runNextTick(removeBlock -> NexoBlocks.remove(block.getLocation()));
         processedCustomBlocks.remove(block.getLocation());
         decayTimer.cancel();
       }else if (isConnected) {
