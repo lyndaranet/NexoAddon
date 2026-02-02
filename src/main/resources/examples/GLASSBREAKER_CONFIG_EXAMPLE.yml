@@ -1,0 +1,46 @@
+# GlassBreaker Mechanic Example Configuration
+# This mechanic allows tools to break glass blocks instantly (one-click)
+# Perfect for pickaxes, hammers, or special tools that should quickly mine glass
+
+example_glass_breaker_pickaxe:
+  Mechanics:
+    glassbreaker:
+      # Enable or disable the glass breaker mechanic
+      enabled: true
+
+      # Durability cost per glass block broken (default: 1)
+      # Set to 0 for no durability cost
+      durability_cost: 1
+
+      # Optional: Specify which glass types can be broken instantly
+      # If empty or not specified, all vanilla glass types will be affected
+      # You can specify vanilla materials (GLASS, RED_STAINED_GLASS, etc.)
+      # or Nexo item IDs for custom glass blocks
+      glass_types:
+        - GLASS
+        - GLASS_PANE
+        - WHITE_STAINED_GLASS
+        - WHITE_STAINED_GLASS_PANE
+        - ORANGE_STAINED_GLASS
+        - RED_STAINED_GLASS
+        - BLUE_STAINED_GLASS
+        # Add your custom Nexo glass block IDs here:
+        # - "custom_glass_block_id"
+
+# Example with no durability cost
+example_glass_hammer:
+  Mechanics:
+    glassbreaker:
+      enabled: true
+      durability_cost: 0
+
+# Example with custom glass types only
+example_specialized_tool:
+  Mechanics:
+    glassbreaker:
+      enabled: true
+      durability_cost: 2
+      glass_types:
+        - GLASS
+        - TINTED_GLASS
+        - "custom_nexo_glass"  # Your custom Nexo glass block ID

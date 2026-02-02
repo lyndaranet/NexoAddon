@@ -130,6 +130,7 @@ public class ItemConfigUtil {
                 loadTelekinessMechanic(itemSection, mechanic);
                 loadLifeStealMechanic(itemSection, mechanic);
                 loadDashMechanic(itemSection, mechanic);
+                loadGlassBreakerMechanic(itemSection, mechanic);
             });
         }
     }
@@ -587,6 +588,24 @@ public class ItemConfigUtil {
 
         mechanic.setDash(power, verticalBoost, cooldown, requireSneaking, particleType, particleAmount,
             soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
+    }
+
+    private static void loadGlassBreakerMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.glassbreaker")) {
+            return;
+        }
+
+        boolean enabled = section.getBoolean("Mechanics.glassbreaker.enabled", true);
+        int durabilityCost = section.getInt("Mechanics.glassbreaker.durability_cost", 1);
+
+        List<Material> glassTypes = new ArrayList<>();
+        List<String> nexoGlassTypes = new ArrayList<>();
+
+        if (section.contains("Mechanics.glassbreaker.glass_types")) {
+            parseItemList(section.getStringList("Mechanics.glassbreaker.glass_types"), glassTypes, nexoGlassTypes);
+        }
+
+        mechanic.setGlassBreaker(glassTypes, nexoGlassTypes, enabled, durabilityCost);
     }
 
     private static void parseItemList(List<String> rawItems, List<Material> materials, List<String> nexoIds) {

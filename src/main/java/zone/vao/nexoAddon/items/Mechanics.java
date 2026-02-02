@@ -43,6 +43,7 @@ public class Mechanics {
     private Telekinesis telekinesis;
     private LifeSteal lifeSteal;
     private Dash dash;
+    private GlassBreaker glassBreaker;
 
     public Mechanics(String id) {
         this.id = id;
@@ -164,6 +165,10 @@ public class Mechanics {
             soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
     }
 
+    public void setGlassBreaker(List<Material> glassTypes, List<String> nexoGlassTypes, boolean enabled, int durabilityCost) {
+        this.glassBreaker = new GlassBreaker(glassTypes, nexoGlassTypes, enabled, durabilityCost);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -177,6 +182,8 @@ public class Mechanics {
         registerListener(new DropExperience.DropExperienceListener(), plugin);
 
         registerListener(new Enchantify.EnchantifyListener(), plugin);
+
+        registerListener(new GlassBreaker.GlassBreakerListener(), plugin);
 
         registerListener(new Infested.InfestedListener(), plugin);
         registerListener(new InventoryType.InventoryTypeListener(), plugin);
