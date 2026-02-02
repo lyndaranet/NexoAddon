@@ -32,7 +32,7 @@ public class FurniturePopulator {
   private static void processOre(World world, Chunk chunk, Ore ore) {
     if (!ore.getWorlds().contains(world) && !ore.getWorldNames().contains("all")) return;
 
-    NexoAddon.instance.foliaLib.getScheduler().runAsync(populate -> {
+    NexoAddon.getInstance().foliaLib.getScheduler().runAsync(populate -> {
       Random random = new Random();
       if (random.nextDouble() > ore.getChance()) return;
 
@@ -98,7 +98,7 @@ public class FurniturePopulator {
       Ore ore,
       int placementIndex
   ) {
-    NexoAddon.instance.foliaLib.getScheduler().runLater(() -> {
+    NexoAddon.getInstance().foliaLib.getScheduler().runLater(() -> {
       if (ore.getReplace() != null && ore.getReplace().contains(loc.getBlock().getType())) {
         loc.getBlock().setType(Material.AIR);
       }

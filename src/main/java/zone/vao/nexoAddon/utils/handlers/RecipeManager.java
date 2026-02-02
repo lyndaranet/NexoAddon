@@ -40,7 +40,7 @@ public class RecipeManager {
         NamespacedKey key = new NamespacedKey(NexoAddon.getInstance(), recipeId);
 
         if (NexoAddon.getInstance().getServer().getRecipe(key) == null) {
-            NexoAddon.instance.foliaLib.getScheduler().runNextTick(registerRecipe -> {
+            NexoAddon.getInstance().foliaLib.getScheduler().runNextTick(registerRecipe -> {
                 SmithingTransformRecipe recipe = new SmithingTransformRecipe(key, resultTemplate, template, base, addition);
                 NexoAddon.getInstance().getServer().addRecipe(recipe);
                 registeredRecipes.add(key);

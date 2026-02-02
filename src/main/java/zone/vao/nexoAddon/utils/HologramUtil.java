@@ -20,14 +20,14 @@ public class HologramUtil {
   public static void displayProgressBar(Entity entity, double progress, Player player) {
     if (entity == null || progress < 0.0 || progress > 1.0) return;
 
-    NexoAddon.instance.foliaLib.getScheduler().runAsync(startDisplay -> {
+    NexoAddon.getInstance().foliaLib.getScheduler().runAsync(startDisplay -> {
       World world = entity.getWorld();
       Location entityLocation = entity.getLocation().clone();
       Location hologramLocation = entityLocation.add(0, 0.5, 0);
 
       Component progressBar = getProgressBar(progress, 10);
 
-      NexoAddon.instance.foliaLib.getScheduler().runNextTick(nextTick -> {
+      NexoAddon.getInstance().foliaLib.getScheduler().runNextTick(nextTick -> {
         if (player != null && holograms.containsKey(player.getUniqueId())) {
           ArmorStand existingHologram = holograms.get(player.getUniqueId());
           existingHologram.remove();
@@ -50,7 +50,7 @@ public class HologramUtil {
         if (player != null)
           holograms.put(player.getUniqueId(), hologram);
 
-        NexoAddon.instance.foliaLib.getScheduler().runLater(() -> {
+        NexoAddon.getInstance().foliaLib.getScheduler().runLater(() -> {
           hologram.remove();
           if (player != null)
             holograms.remove(player.getUniqueId());

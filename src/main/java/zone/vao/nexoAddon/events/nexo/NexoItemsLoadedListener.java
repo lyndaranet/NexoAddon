@@ -23,7 +23,7 @@ public class NexoItemsLoadedListener implements Listener {
     SkullUtil.applyTextures();
 
     NexoAddon.getInstance().getParticleEffectManager().stopAuraEffectTask();
-    NexoAddon.instance.foliaLib.getScheduler().runLater(() -> {
+    NexoAddon.getInstance().foliaLib.getScheduler().runLater(() -> {
       NexoAddon.getInstance().getParticleEffectManager().startAuraEffectTask();
     },2L);
 
