@@ -22,7 +22,6 @@ import org.bukkit.persistence.PersistentDataType;
 import zone.vao.nexoAddon.NexoAddon;
 
 import java.util.Set;
-import java.util.logging.Logger;
 
 import static zone.vao.nexoAddon.utils.BlockUtil.isInteractable;
 
@@ -55,7 +54,6 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
 
     public static class WideHoeListener implements Listener {
 
-        private static final Logger log = NexoAddon.getInstance().getLogger();
 
         private static final NamespacedKey KEY =
             new NamespacedKey(NexoAddon.getInstance(), "wideHoeSwitchable");
@@ -75,10 +73,6 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
             ItemStack tool = player.getInventory().getItemInMainHand();
             String toolId = NexoItems.idFromItem(tool);
 
-            log.info("[WideHoe] RIGHT_CLICK_BLOCK | player=" + player.getName()
-                + " | toolId=" + toolId
-                + " | isWideHoeTool=" + WideHoe.isWideHoeTool(toolId));
-
             if (!WideHoe.isWideHoeTool(toolId)) {
                 return;
             }
@@ -96,18 +90,13 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
                 PersistentDataContainer pdc = tool.getItemMeta().getPersistentDataContainer();
                 if (pdc.has(KEY, PersistentDataType.BOOLEAN)
                     && Boolean.FALSE.equals(pdc.get(KEY, PersistentDataType.BOOLEAN))) {
-                    log.info("[WideHoe] " + player.getName() + " has WideHoe disabled, skipping.");
                     return;
                 }
             }
 
             if (!mechanic.canTill(clicked.getType())) {
-                log.info("[WideHoe] Block " + clicked.getType() + " is not tillable, skipping.");
                 return;
             }
-
-            log.info("[WideHoe] " + player.getName() + " tilling " + mechanic.radius() + "x" + mechanic.radius()
-                     + " around " + clicked.getX() + "," + clicked.getY() + "," + clicked.getZ());
 
             // Cancel vanilla so the server doesn't do a single-block till on its own
             event.setCancelled(true);
@@ -144,14 +133,12 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
 
                     if (mechanic.durabilityCost() > 0) {
                         if (!applyDurability(player, tool, mechanic.durabilityCost())) {
-                            log.info("[WideHoe] Tool broke for " + player.getName() + " after " + tilled + " blocks.");
                             return;
                         }
                     }
                 }
             }
 
-            log.info("[WideHoe] Tilled " + tilled + " blocks for " + player.getName());
             origin.getWorld().playSound(origin.getLocation(), Sound.ITEM_HOE_TILL, 1.0f, 1.0f);
         }
 
@@ -213,17 +200,14 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
                 pdc.set(KEY, PersistentDataType.BOOLEAN, true);
                 tool.setItemMeta(meta);
                 turnOn(player, pdc);
-                log.info("[WideHoe] " + player.getName() + " toggled WideHoe ON (first use).");
                 return;
             }
 
             boolean isOn = Boolean.TRUE.equals(pdc.get(KEY, PersistentDataType.BOOLEAN));
             if (isOn) {
                 turnOff(player, pdc);
-                log.info("[WideHoe] " + player.getName() + " toggled WideHoe OFF.");
             } else {
                 turnOn(player, pdc);
-                log.info("[WideHoe] " + player.getName() + " toggled WideHoe ON.");
             }
             tool.setItemMeta(meta);
         }
