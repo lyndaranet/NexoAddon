@@ -54,7 +54,6 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
 
     public static class WideHoeListener implements Listener {
 
-
         private static final NamespacedKey KEY =
             new NamespacedKey(NexoAddon.getInstance(), "wideHoeSwitchable");
 
@@ -108,7 +107,6 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
 
         private void tillRadius(Player player, ItemStack tool, Block origin, WideHoe mechanic) {
             int half = mechanic.radius() / 2;
-            int tilled = 0;
 
             for (int dx = -half; dx <= half; dx++) {
                 for (int dz = -half; dz <= half; dz++) {
@@ -129,7 +127,6 @@ public record WideHoe(int radius, boolean switchable, boolean tillGrass, int dur
                     }
 
                     target.setType(Material.FARMLAND);
-                    tilled++;
 
                     if (mechanic.durabilityCost() > 0) {
                         if (!applyDurability(player, tool, mechanic.durabilityCost())) {
