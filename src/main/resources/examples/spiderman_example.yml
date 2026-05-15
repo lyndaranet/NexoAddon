@@ -1,0 +1,41 @@
+example_spiderman_suit:
+  itemname: "<red><bold>Spider-Man Anzug"
+  material: LEATHER_CHESTPLATE
+  lore:
+    - "<gray>Schleichen + Wand: Klettern"
+    - "<gray>Rechtsklick: Spinnennetz schießen"
+
+  Mechanics:
+    spiderman:
+      enabled: true
+
+      wall_climb:
+        enabled: true
+        # Aufwärtsbewegung pro Tick beim Klettern
+        climb_speed: 0.25
+        # Slot-Prüfung: HAND, OFFHAND oder ANY (inkl. Rüstung)
+        check_slot: "ANY"
+
+      web_shot:
+        enabled: true
+        # Maximale Webdistanz in Blöcken
+        max_distance: 20
+        # Zuggeschwindigkeit pro Tick
+        pull_speed: 1.0
+        # Aufwärts-Bogen beim Abschuss (Spider-Man-Schwung-Effekt)
+        arc_boost: 0.4
+        # Abklingzeit in Sekunden
+        cooldown: 2
+
+      # Partikel für Netzlinie und Bewegungsspur
+      particle:
+        type: "CLOUD"
+        amount: 3
+      sound:
+        type: "ENTITY_FISHING_BOBBER_THROW"
+        volume: 1.0
+        pitch: 1.5
+
+      cooldown_message: "<red>Noch <bold>{time}s</bold> Abklingzeit!"
+      # Haltbarkeitskosten pro Web-Schuss (0 = keine)
+      durability_cost: 0

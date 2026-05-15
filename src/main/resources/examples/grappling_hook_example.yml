@@ -1,0 +1,31 @@
+example_grappling_hook:
+  itemname: "<gold><bold>Greifhaken"
+  material: FISHING_ROD
+  lore:
+    - "<gray>Rechtsklick: Haken schießen"
+    - "<gray>Rechtsklick (erneut): Abbrechen"
+
+  Mechanics:
+    grappling_hook:
+      enabled: true
+      # Maximale Hakendistanz in Blöcken
+      max_distance: 30
+      # Zuggeschwindigkeit pro Tick
+      pull_speed: 0.8
+      # Abklingzeit in Sekunden
+      cooldown: 3
+      # Haltbarkeitskosten pro Nutzung (0 = keine)
+      durability_cost: 1
+      cooldown_message: "<red>Noch <bold>{time}s</bold> Abklingzeit!"
+      particle:
+        type: "CRIT"
+        amount: 3
+      sound:
+        type: "ENTITY_FISHING_BOBBER_THROW"
+        volume: 1.0
+        pitch: 1.2
+      # Seil-Partikel (DUST-Typ, live von Hand zu Ankerpunkt)
+      rope:
+        color: "139,90,43"   # RGB – braunes Seil (Standard)
+        size: 0.5             # Partikelgröße
+        spacing: 0.35         # Abstand zwischen Partikeln (kleiner = dichter)

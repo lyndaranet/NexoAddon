@@ -50,6 +50,8 @@ public class Mechanics {
     private InfiniteFood infiniteFood;
     private WideHoe wideHoe;
     private Magnet magnet;
+    private GrapplingHook grapplingHook;
+    private SpiderMan spiderMan;
 
     public Mechanics(String id) {
         this.id = id;
@@ -199,6 +201,27 @@ public class Mechanics {
             soundType, soundVolume, soundPitch, activeLore, inactiveLore);
     }
 
+    public void setGrapplingHook(boolean enabled, int maxDistance, double pullSpeed, int cooldown,
+        String particleType, int particleAmount, String soundType, float soundVolume, float soundPitch,
+        String cooldownMessage, int durabilityCost,
+        String ropeColor, float ropeSize, double ropeSpacing) {
+        this.grapplingHook = new GrapplingHook(enabled, maxDistance, pullSpeed, cooldown,
+            particleType, particleAmount, soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost,
+            ropeColor, ropeSize, ropeSpacing);
+    }
+
+    public void setSpiderMan(boolean enabled,
+        boolean wallClimbEnabled, double climbSpeed, String checkSlot,
+        boolean webShotEnabled, int webMaxDistance, double webPullSpeed,
+        double arcBoost, int webCooldown,
+        String particleType, int particleAmount,
+        String soundType, float soundVolume, float soundPitch,
+        String cooldownMessage, int durabilityCost) {
+        this.spiderMan = new SpiderMan(enabled, wallClimbEnabled, climbSpeed, checkSlot,
+            webShotEnabled, webMaxDistance, webPullSpeed, arcBoost, webCooldown,
+            particleType, particleAmount, soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -248,6 +271,12 @@ public class Mechanics {
         Magnet.MagnetListener magnetListener = new Magnet.MagnetListener();
         registerListener(magnetListener, plugin);
         Magnet.MagnetListener.startMagnetTask();
+
+        registerListener(new GrapplingHook.GrapplingHookListener(), plugin);
+
+        SpiderMan.SpiderManListener spiderManListener = new SpiderMan.SpiderManListener();
+        registerListener(spiderManListener, plugin);
+        SpiderMan.SpiderManListener.startClimbTask();
     }
 
     private static void registerListener(Listener listener, NexoAddon plugin) {

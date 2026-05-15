@@ -136,6 +136,8 @@ public class ItemConfigUtil {
                 loadInfiniteFoodMechanic(itemSection, mechanic);
                 loadWideHoeMechanic(itemSection, mechanic);
                 loadMagnetMechanic(itemSection, mechanic);
+                loadGrapplingHookMechanic(itemSection, mechanic);
+                loadSpiderManMechanic(itemSection, mechanic);
             });
         }
     }
@@ -705,6 +707,54 @@ public class ItemConfigUtil {
 
         mechanic.setMagnet(enabled, radius, pullSpeed, particleType, particleAmount,
             soundType, soundVolume, soundPitch, activeLore, inactiveLore);
+    }
+
+    private static void loadGrapplingHookMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.grappling_hook")) return;
+
+        boolean enabled = section.getBoolean("Mechanics.grappling_hook.enabled", true);
+        int maxDistance = section.getInt("Mechanics.grappling_hook.max_distance", 30);
+        double pullSpeed = section.getDouble("Mechanics.grappling_hook.pull_speed", 0.8);
+        int cooldown = section.getInt("Mechanics.grappling_hook.cooldown", 3);
+        String particleType = section.getString("Mechanics.grappling_hook.particle.type", "CRIT");
+        int particleAmount = section.getInt("Mechanics.grappling_hook.particle.amount", 3);
+        String soundType = section.getString("Mechanics.grappling_hook.sound.type", "ENTITY_FISHING_BOBBER_THROW");
+        float soundVolume = (float) section.getDouble("Mechanics.grappling_hook.sound.volume", 1.0);
+        float soundPitch = (float) section.getDouble("Mechanics.grappling_hook.sound.pitch", 1.2);
+        String cooldownMessage = section.getString("Mechanics.grappling_hook.cooldown_message", "<red>Noch {time}s Abklingzeit!");
+        int durabilityCost = section.getInt("Mechanics.grappling_hook.durability_cost", 1);
+        String ropeColor = section.getString("Mechanics.grappling_hook.rope.color", "139,90,43");
+        float ropeSize = (float) section.getDouble("Mechanics.grappling_hook.rope.size", 0.5);
+        double ropeSpacing = section.getDouble("Mechanics.grappling_hook.rope.spacing", 0.35);
+
+        mechanic.setGrapplingHook(enabled, maxDistance, pullSpeed, cooldown,
+            particleType, particleAmount, soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost,
+            ropeColor, ropeSize, ropeSpacing);
+    }
+
+    private static void loadSpiderManMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.spiderman")) return;
+
+        boolean enabled = section.getBoolean("Mechanics.spiderman.enabled", true);
+        boolean wallClimbEnabled = section.getBoolean("Mechanics.spiderman.wall_climb.enabled", true);
+        double climbSpeed = section.getDouble("Mechanics.spiderman.wall_climb.climb_speed", 0.25);
+        String checkSlot = section.getString("Mechanics.spiderman.wall_climb.check_slot", "ANY");
+        boolean webShotEnabled = section.getBoolean("Mechanics.spiderman.web_shot.enabled", true);
+        int webMaxDistance = section.getInt("Mechanics.spiderman.web_shot.max_distance", 20);
+        double webPullSpeed = section.getDouble("Mechanics.spiderman.web_shot.pull_speed", 1.0);
+        double arcBoost = section.getDouble("Mechanics.spiderman.web_shot.arc_boost", 0.4);
+        int webCooldown = section.getInt("Mechanics.spiderman.web_shot.cooldown", 2);
+        String particleType = section.getString("Mechanics.spiderman.particle.type", "CLOUD");
+        int particleAmount = section.getInt("Mechanics.spiderman.particle.amount", 3);
+        String soundType = section.getString("Mechanics.spiderman.sound.type", "ENTITY_FISHING_BOBBER_THROW");
+        float soundVolume = (float) section.getDouble("Mechanics.spiderman.sound.volume", 1.0);
+        float soundPitch = (float) section.getDouble("Mechanics.spiderman.sound.pitch", 1.5);
+        String cooldownMessage = section.getString("Mechanics.spiderman.cooldown_message", "<red>Noch {time}s Abklingzeit!");
+        int durabilityCost = section.getInt("Mechanics.spiderman.durability_cost", 0);
+
+        mechanic.setSpiderMan(enabled, wallClimbEnabled, climbSpeed, checkSlot,
+            webShotEnabled, webMaxDistance, webPullSpeed, arcBoost, webCooldown,
+            particleType, particleAmount, soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
     }
 
     private static void parseItemList(List<String> rawItems, List<Material> materials, List<String> nexoIds) {
