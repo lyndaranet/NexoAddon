@@ -48,6 +48,8 @@ public class Mechanics {
     private SandSmelt sandSmelt;
     private InfiniteBucket infiniteBucket;
     private InfiniteFood infiniteFood;
+    private InfiniteShears infiniteShears;
+    private InfiniteFluidBucket infiniteFluidBucket;
     private WideHoe wideHoe;
     private Magnet magnet;
     private GrapplingHook grapplingHook;
@@ -190,15 +192,23 @@ public class Mechanics {
         this.infiniteFood = new InfiniteFood(enabled, uses);
     }
 
+    public void setInfiniteShears(boolean enabled, int uses) {
+        this.infiniteShears = new InfiniteShears(enabled, uses);
+    }
+
+    public void setInfiniteFluidBucket(boolean enabled, int uses, String waterLore, String lavaLore) {
+        this.infiniteFluidBucket = new InfiniteFluidBucket(enabled, uses, waterLore, lavaLore);
+    }
+
     public void setWideHoe(int radius, boolean switchable, boolean tillGrass, int durabilityCost) {
         this.wideHoe = new WideHoe(radius, switchable, tillGrass, durabilityCost);
     }
 
     public void setMagnet(boolean enabled, int radius, double pullSpeed,
         String particleType, int particleAmount, String soundType, float soundVolume, float soundPitch,
-        String activeLore, String inactiveLore) {
+        String activeLore, String inactiveLore, boolean plotOnly, boolean trustedPlots, boolean wildernessOnly) {
         this.magnet = new Magnet(enabled, radius, pullSpeed, particleType, particleAmount,
-            soundType, soundVolume, soundPitch, activeLore, inactiveLore);
+            soundType, soundVolume, soundPitch, activeLore, inactiveLore, plotOnly, trustedPlots, wildernessOnly);
     }
 
     public void setGrapplingHook(boolean enabled, int maxDistance, double pullSpeed, int cooldown,
@@ -266,6 +276,8 @@ public class Mechanics {
         registerListener(new SandSmelt.SandSmeltListener(), plugin);
         registerListener(new InfiniteBucket.InfiniteBucketListener(), plugin);
         registerListener(new InfiniteFood.InfiniteFoodListener(), plugin);
+        registerListener(new InfiniteShears.InfiniteShearsListener(), plugin);
+        registerListener(new InfiniteFluidBucket.InfiniteFluidBucketListener(), plugin);
         registerListener(new WideHoe.WideHoeListener(), plugin);
 
         Magnet.MagnetListener magnetListener = new Magnet.MagnetListener();

@@ -1,0 +1,25 @@
+# InfiniteShears Mechanic Configuration Example
+# Verhindert den Haltbarkeitsverlust einer Nexo-Schere.
+# Funktioniert mit allen Aktionen, die die Schere beschädigen würden
+# (Schafe scheren, Netze zerschneiden, Stolperdraht durchtrennen usw.).
+
+# ── Wirklich unendliche Schere ───────────────────────────────────────────────
+my_infinite_shears:
+  Mechanics:
+    infinite_shears:
+      # Enable / disable die Mechanic ohne die Konfiguration zu entfernen
+      # Default: true
+      enabled: true
+
+      # Maximale Verwendungen bevor die Schere normal Haltbarkeit verliert.
+      # -1 = wirklich unendlich (empfohlen, Default)
+      # Positive Ganzzahl = begrenzte Nutzungen (verbleibende Nutzungen
+      # werden als Lore-Zeile am Item angezeigt).
+      uses: -1
+
+# ── Schere mit begrenzten Verwendungen (50 Nutzungen) ────────────────────────
+my_limited_shears:
+  Mechanics:
+    infinite_shears:
+      enabled: true
+      uses: 50

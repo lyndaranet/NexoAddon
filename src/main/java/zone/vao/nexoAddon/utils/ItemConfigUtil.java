@@ -134,6 +134,8 @@ public class ItemConfigUtil {
                 loadSandSmeltMechanic(itemSection, mechanic);
                 loadInfiniteBucketMechanic(itemSection, mechanic);
                 loadInfiniteFoodMechanic(itemSection, mechanic);
+                loadInfiniteShearsMechanic(itemSection, mechanic);
+                loadInfiniteFluidBucketMechanic(itemSection, mechanic);
                 loadWideHoeMechanic(itemSection, mechanic);
                 loadMagnetMechanic(itemSection, mechanic);
                 loadGrapplingHookMechanic(itemSection, mechanic);
@@ -672,6 +674,28 @@ public class ItemConfigUtil {
         mechanic.setInfiniteFood(enabled, uses);
     }
 
+    private static void loadInfiniteShearsMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.infinite_shears")) {
+            return;
+        }
+
+        boolean enabled = section.getBoolean("Mechanics.infinite_shears.enabled", true);
+        int uses = section.getInt("Mechanics.infinite_shears.uses", -1);
+        mechanic.setInfiniteShears(enabled, uses);
+    }
+
+    private static void loadInfiniteFluidBucketMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.infinite_fluid_bucket")) {
+            return;
+        }
+
+        boolean enabled = section.getBoolean("Mechanics.infinite_fluid_bucket.enabled", true);
+        int uses = section.getInt("Mechanics.infinite_fluid_bucket.uses", -1);
+        String waterLore = section.getString("Mechanics.infinite_fluid_bucket.water_lore", "<aqua>Modus: Wasser");
+        String lavaLore = section.getString("Mechanics.infinite_fluid_bucket.lava_lore", "<red>Modus: Lava");
+        mechanic.setInfiniteFluidBucket(enabled, uses, waterLore, lavaLore);
+    }
+
     private static void loadWideHoeMechanic(ConfigurationSection section, Mechanics mechanic) {
         if (!section.contains("Mechanics.widehoe")) {
             return;
@@ -704,9 +728,12 @@ public class ItemConfigUtil {
         float soundPitch = (float) section.getDouble("Mechanics.magnet.sound.pitch", 1.5);
         String activeLore = section.getString("Mechanics.magnet.active_lore", "<green>Magnet: AN");
         String inactiveLore = section.getString("Mechanics.magnet.inactive_lore", "<red>Magnet: AUS");
+        boolean plotOnly = section.getBoolean("Mechanics.magnet.plot_only", false);
+        boolean trustedPlots = section.getBoolean("Mechanics.magnet.trusted_plots", false);
+        boolean wildernessOnly = section.getBoolean("Mechanics.magnet.wilderness_only", false);
 
         mechanic.setMagnet(enabled, radius, pullSpeed, particleType, particleAmount,
-            soundType, soundVolume, soundPitch, activeLore, inactiveLore);
+            soundType, soundVolume, soundPitch, activeLore, inactiveLore, plotOnly, trustedPlots, wildernessOnly);
     }
 
     private static void loadGrapplingHookMechanic(ConfigurationSection section, Mechanics mechanic) {

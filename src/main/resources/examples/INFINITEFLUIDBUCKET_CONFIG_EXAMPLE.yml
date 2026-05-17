@@ -1,0 +1,44 @@
+# InfiniteFluidBucket Mechanic Configuration Example
+# Ein einzelnes Nexo-Item, das sowohl Wasser als auch Lava unendlich platzieren kann.
+#
+# Steuerung:
+#   Rechtsklick Luft    → Wechselt zwischen Wasser- und Lava-Modus
+#   Rechtsklick Block   → Platziert die aktuelle Flüssigkeit (ohne den Eimer zu verbrauchen)
+#
+# Der aktuelle Modus wird über konfigurierbare Lore-Zeilen angezeigt.
+# Tipp: Füge eine der Lore-Zeilen (water_lore oder lava_lore) direkt im Nexo-Item-YAML
+# als Default-Lore ein, damit der Modus beim ersten Aufnehmen sichtbar ist.
+
+# ── Unendlicher Wasser+Lava Eimer ────────────────────────────────────────────
+my_infinite_fluid_bucket:
+  lore:
+    - "<aqua>Modus: Wasser"
+  Mechanics:
+    infinite_fluid_bucket:
+      # Enable / disable die Mechanic
+      # Default: true
+      enabled: true
+
+      # Maximale Verwendungen (-1 = wirklich unendlich)
+      # Bei positiver Ganzzahl werden verbleibende Nutzungen in der Lore angezeigt.
+      # Default: -1
+      uses: -1
+
+      # Lore-Zeile wenn der Eimer im WASSER-Modus ist (MiniMessage-Format)
+      # Default: "<aqua>Modus: Wasser"
+      water_lore: "<aqua>Modus: Wasser"
+
+      # Lore-Zeile wenn der Eimer im LAVA-Modus ist (MiniMessage-Format)
+      # Default: "<red>Modus: Lava"
+      lava_lore: "<red>Modus: Lava"
+
+# ── Eimer mit begrenzten Verwendungen (100 Nutzungen) ────────────────────────
+my_limited_fluid_bucket:
+  lore:
+    - "<aqua>⛏ Modus: <bold>Wasser</bold>"
+  Mechanics:
+    infinite_fluid_bucket:
+      enabled: true
+      uses: 100
+      water_lore: "<aqua>⛏ Modus: <bold>Wasser</bold>"
+      lava_lore: "<red>🔥 Modus: <bold>Lava</bold>"

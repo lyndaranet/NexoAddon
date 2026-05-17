@@ -32,7 +32,8 @@ import zone.vao.nexoAddon.items.Mechanics;
 public record Magnet(boolean enabled, int radius, double pullSpeed,
                      String particleType, int particleAmount,
                      String soundType, float soundVolume, float soundPitch,
-                     String activeLore, String inactiveLore) {
+                     String activeLore, String inactiveLore,
+                     boolean plotOnly, boolean trustedPlots, boolean wildernessOnly) {
 
     private static final NamespacedKey ACTIVE_KEY = new NamespacedKey(NexoAddon.getInstance(), "magnet_active");
     private static final MiniMessage MINI = MiniMessage.builder()
@@ -165,7 +166,10 @@ public record Magnet(boolean enabled, int radius, double pullSpeed,
 
         private static void pullItemsToPlayer(Player player, Magnet magnet) {
 
-            if (player.getWorld().getName().equalsIgnoreCase("Plots")) {
+            if (magnet.plotOnly() && !isAllowedByPlot(player, magnet.trustedPlots())) {
+                return;
+            }
+            if (magnet.wildernessOnly() && isOnAnyPlot(player)) {
                 return;
             }
 
@@ -211,6 +215,42 @@ public record Magnet(boolean enabled, int radius, double pullSpeed,
                 } catch (IllegalArgumentException ignored) {
                 }
             }
+        }
+
+        // Gibt true zurück wenn der Spieler auf irgendeinem beanspruchten Plot steht.
+        private static boolean isOnAnyPlot(Player player) {
+            if (!org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlotSquared")) {
+                return false;
+            }
+            org.bukkit.Location bLoc = player.getLocation();
+            com.plotsquared.core.location.Location psLoc = com.plotsquared.core.location.Location.at(
+                bLoc.getWorld().getName(), bLoc.getBlockX(), bLoc.getBlockY(), bLoc.getBlockZ()
+            );
+            com.plotsquared.core.plot.PlotArea area = com.plotsquared.core.PlotSquared.get()
+                .getPlotAreaManager().getApplicablePlotArea(psLoc);
+            if (area == null) return false;
+            return area.getPlotAbs(psLoc) != null;
+        }
+
+        private static boolean isAllowedByPlot(Player player, boolean allowTrusted) {
+            if (!org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlotSquared")) {
+                return true;
+            }
+            org.bukkit.Location bLoc = player.getLocation();
+            com.plotsquared.core.location.Location psLoc = com.plotsquared.core.location.Location.at(
+                bLoc.getWorld().getName(), bLoc.getBlockX(), bLoc.getBlockY(), bLoc.getBlockZ()
+            );
+            com.plotsquared.core.plot.PlotArea area = com.plotsquared.core.PlotSquared.get()
+                .getPlotAreaManager().getApplicablePlotArea(psLoc);
+            if (area == null) return false;
+
+            com.plotsquared.core.plot.Plot plot = area.getPlotAbs(psLoc);
+            if (plot == null) return false;
+
+            java.util.UUID uuid = player.getUniqueId();
+            if (plot.isOwner(uuid)) return true;
+            if (allowTrusted && plot.getTrusted().contains(uuid)) return true;
+            return false;
         }
     }
 }

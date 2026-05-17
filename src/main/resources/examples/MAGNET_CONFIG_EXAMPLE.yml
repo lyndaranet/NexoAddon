@@ -60,6 +60,18 @@ magnet_ring:
         # Default: 1.5
         pitch: 1.5
 
+      # PlotSquared-Integration: Magnet nur auf Plots zulassen
+      # Erfordert PlotSquared auf dem Server.
+      # Default: false (Magnet funktioniert überall)
+      plot_only: false
+
+      # Falls plot_only: true – soll der Magnet auch auf Plots funktionieren,
+      # auf denen der Spieler als Trusted eingetragen ist?
+      # false = nur auf eigenen Plots (Owner)
+      # true  = auf eigenen UND Trusted-Plots
+      # Default: false
+      trusted_plots: false
+
 # Einfacher Magnet — großer Radius, keine Effekte
 powerful_magnet:
   lore:
