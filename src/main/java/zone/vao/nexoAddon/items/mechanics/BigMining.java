@@ -17,6 +17,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import zone.vao.nexoAddon.NexoAddon;
@@ -43,6 +44,11 @@ public record BigMining(int radius, int depth, boolean switchable, List<Material
         @EventHandler
         public static void onBreak(BlockBreakEvent event) {
             Player player = event.getPlayer();
+
+            if (player.hasMetadata("multibreak_active")) {
+                return;
+            }
+
             ItemStack tool = player.getInventory().getItemInMainHand();
 
             String toolId = NexoItems.idFromItem(tool);
@@ -85,9 +91,15 @@ public record BigMining(int radius, int depth, boolean switchable, List<Material
             BlockFace breakFace = secondaryBlock.getFace(primaryBlock);
             int directionalModifier = calculateModifier(primaryBlock, secondaryBlock);
 
-            breakBlocksInRadius(player, event.getBlock().getLocation(), breakFace, bigMiningMechanic,
-                directionalModifier, tool);
-            activeBlockBreaks.set(0);
+            NexoAddon plugin = NexoAddon.getInstance();
+            player.setMetadata("multibreak_active", new FixedMetadataValue(plugin, true));
+            try {
+                breakBlocksInRadius(player, event.getBlock().getLocation(), breakFace, bigMiningMechanic,
+                    directionalModifier, tool);
+                activeBlockBreaks.set(0);
+            } finally {
+                player.removeMetadata("multibreak_active", plugin);
+            }
         }
 
         private static int calculateModifier(Block primaryBlock, Block secondaryBlock) {
