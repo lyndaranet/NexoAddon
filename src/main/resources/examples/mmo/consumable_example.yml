@@ -1,0 +1,81 @@
+# Sushi-Rolle — food, eaten normally, Speed + Saturation
+SUSHI_ROLLE:
+  displayname: "<yellow>Sushi-Rolle"
+  Mechanics:
+    consumable:
+      trigger: eat
+      cooldown: 10
+      instant_heal: 2.0
+      effects:
+        - type: SPEED
+          amplifier: 0
+          duration: 20
+        - type: SATURATION
+          amplifier: 1
+          duration: 5
+      sound: ENTITY_PLAYER_BURP
+      particle: HEART
+
+# Heilungstrank — right-click skull, instant heal, no cooldown abuse
+HEILUNGSTRANK:
+  displayname: "<red>Heilungstrank"
+  Mechanics:
+    consumable:
+      trigger: right_click
+      cooldown: 30
+      consume_item: true
+      instant_heal: 8.0
+      conditions:
+        require_health_below: 70
+      sound: ENTITY_GENERIC_DRINK
+      particle: HEART
+      message_self: "<green>Du trinkst den Trank und spürst wie deine Wunden schließen."
+
+# Rune der Stärke — right-click, Strength II for 60 s, broadcasts use
+RUNE_DER_STAERKE:
+  displayname: "<gold>Rune der Stärke"
+  Mechanics:
+    consumable:
+      trigger: right_click
+      cooldown: 120
+      consume_item: true
+      effects:
+        - type: INCREASE_DAMAGE
+          amplifier: 1
+          duration: 60
+      sound: BLOCK_ENCHANTMENT_TABLE_USE
+      particle: ENCHANTMENT_TABLE
+      message_broadcast: "<gold><bold>{player}</bold> <yellow>hat eine Rune der Stärke aktiviert!"
+
+# Verfluchtes Brot — food with 25% poison chance (gamble item)
+VERFLUCHTES_BROT:
+  displayname: "<dark_green>Verfluchtes Brot"
+  Mechanics:
+    consumable:
+      trigger: eat
+      cooldown: 0
+      instant_heal: 3.0
+      effects:
+        - type: SATURATION
+          amplifier: 0
+          duration: 10
+        - type: POISON
+          amplifier: 1
+          duration: 4
+          chance: 0.25
+
+# Scroll of Fortune — right-click, gives coins via command, requires permission
+SCROLL_OF_FORTUNE:
+  displayname: "<yellow>✦ Scroll of Fortune"
+  Mechanics:
+    consumable:
+      trigger: right_click
+      cooldown: 0
+      consume_item: true
+      commands:
+        - "eco give {player} 500"
+      conditions:
+        require_permission: lyndara.use.scroll
+      sound: ENTITY_EXPERIENCE_ORB_PICKUP
+      particle: VILLAGER_HAPPY
+      message_self: "<gold>Du öffnest die Schriftrolle – <yellow>+500 Münzen!"

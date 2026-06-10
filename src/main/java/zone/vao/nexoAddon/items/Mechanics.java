@@ -54,6 +54,14 @@ public class Mechanics {
     private Magnet magnet;
     private GrapplingHook grapplingHook;
     private SpiderMan spiderMan;
+    private OnHitMechanic onHitMechanic;
+    private AreaMiningMechanic areaMiningMechanic;
+    private PassiveEffectMechanic passiveEffectMechanic;
+    private ConsumableMechanic consumableMechanic;
+    private AreaAbilityMechanic areaAbilityMechanic;
+    private TeleportMechanic teleportMechanic;
+    private BeamMechanic beamMechanic;
+    private ParticleAuraMechanic particleAuraMechanic;
 
     public Mechanics(String id) {
         this.id = id;
@@ -232,6 +240,72 @@ public class Mechanics {
             particleType, particleAmount, soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
     }
 
+    public void setOnHitMechanic(List<OnHitMechanic.OnHitEffect> effects, int cooldownSeconds,
+        org.bukkit.Particle particles) {
+        this.onHitMechanic = new OnHitMechanic(effects, cooldownSeconds, particles);
+    }
+
+    public void setAreaMiningMechanic(AreaMiningMechanic.Shape shape, boolean consumeDurability, int length,
+        int maxBlocks, int radius, int depth, List<String> toolTypes, java.util.Set<Material> deniedBlocks) {
+        this.areaMiningMechanic = new AreaMiningMechanic(shape, consumeDurability, length, maxBlocks, radius, depth,
+            toolTypes, deniedBlocks);
+    }
+
+    public void setPassiveEffectMechanic(String slot, int reapplyTicks,
+        List<PassiveEffectMechanic.PassivePotionEffect> potionEffects,
+        List<PassiveEffectMechanic.PassiveAttributeModifier> attributeModifiers,
+        PassiveEffectMechanic.PassiveConditions conditions, org.bukkit.Particle ambientParticle,
+        org.bukkit.Sound activateSound, org.bukkit.Sound deactivateSound) {
+        this.passiveEffectMechanic = new PassiveEffectMechanic(slot, reapplyTicks, potionEffects, attributeModifiers,
+            conditions, ambientParticle, activateSound, deactivateSound);
+    }
+
+    public void setConsumableMechanic(String trigger, int cooldownSeconds, boolean consumeItem, double instantHeal,
+        double instantDamage, List<ConsumableMechanic.ConsumableEffect> effects, List<String> commands,
+        ConsumableMechanic.ConsumableConditions conditions, org.bukkit.Sound sound, org.bukkit.Particle particle,
+        String messageSelf, String messageBroadcast) {
+        this.consumableMechanic = new ConsumableMechanic(trigger, cooldownSeconds, consumeItem, instantHeal,
+            instantDamage, effects, commands, conditions, sound, particle, messageSelf, messageBroadcast);
+    }
+
+    public void setAreaAbilityMechanic(String trigger, int cooldownSeconds, double radius, String targets,
+        boolean includeSelf, int maxTargets, double healAmount, double damageAmount, double launchVelocity,
+        List<AreaAbilityMechanic.AbilityEffect> effects, List<String> commands, double selfHeal, double selfDamage,
+        List<AreaAbilityMechanic.AbilityEffect> selfEffects, AreaAbilityMechanic.AbilityConditions conditions,
+        org.bukkit.Particle particle, org.bukkit.Particle waveParticle, org.bukkit.Sound sound,
+        org.bukkit.Sound soundTarget) {
+        this.areaAbilityMechanic = new AreaAbilityMechanic(trigger, cooldownSeconds, radius, targets, includeSelf,
+            maxTargets, healAmount, damageAmount, launchVelocity, effects, commands, selfHeal, selfDamage, selfEffects,
+            conditions, particle, waveParticle, sound, soundTarget);
+    }
+
+    public void setTeleportMechanic(String trigger, String mode, int cooldownSeconds, double distance,
+        boolean behindTarget, double arriveDamageRadius, double arriveDamage, double launchVelocity,
+        List<AreaAbilityMechanic.AbilityEffect> effects, List<String> commands,
+        TeleportMechanic.TeleportConditions conditions, List<TeleportMechanic.ParticleEntry> originParticles,
+        List<TeleportMechanic.ParticleEntry> destinationParticles, org.bukkit.Particle trailParticle,
+        org.bukkit.Sound soundOrigin, org.bukkit.Sound soundDestination) {
+        this.teleportMechanic = new TeleportMechanic(trigger, mode, cooldownSeconds, distance, behindTarget,
+            arriveDamageRadius, arriveDamage, launchVelocity, effects, commands, conditions, originParticles,
+            destinationParticles, trailParticle, soundOrigin, soundDestination);
+    }
+
+    public void setBeamMechanic(String trigger, int cooldownSeconds, double range, double width, double height,
+        boolean pierce, boolean pierceBlocks, double damage, double knockback,
+        List<AreaAbilityMechanic.AbilityEffect> effects, List<String> commands,
+        List<AreaAbilityMechanic.AbilityEffect> selfEffects, double selfDamage,
+        BeamMechanic.BeamConditions conditions, List<BeamMechanic.BeamSegment> beamSegments,
+        org.bukkit.Particle hitParticle, org.bukkit.Sound sound, org.bukkit.Sound soundHit) {
+        this.beamMechanic = new BeamMechanic(trigger, cooldownSeconds, range, width, height, pierce, pierceBlocks,
+            damage, knockback, effects, commands, selfEffects, selfDamage, conditions, beamSegments, hitParticle,
+            sound, soundHit);
+    }
+
+    public void setParticleAuraMechanic(String slot, int intervalTicks,
+        ParticleAuraMechanic.AuraConditions conditions, List<ParticleAuraMechanic.AuraLayer> layers) {
+        this.particleAuraMechanic = new ParticleAuraMechanic(slot, intervalTicks, conditions, layers);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -289,6 +363,15 @@ public class Mechanics {
         SpiderMan.SpiderManListener spiderManListener = new SpiderMan.SpiderManListener();
         registerListener(spiderManListener, plugin);
         SpiderMan.SpiderManListener.startClimbTask();
+
+        registerListener(new OnHitMechanic.OnHitMechanicListener(), plugin);
+        registerListener(new AreaMiningMechanic.AreaMiningMechanicListener(), plugin);
+        registerListener(new PassiveEffectMechanic.PassiveEffectMechanicListener(), plugin);
+        registerListener(new ConsumableMechanic.ConsumableMechanicListener(), plugin);
+        registerListener(new AreaAbilityMechanic.AreaAbilityMechanicListener(), plugin);
+        registerListener(new TeleportMechanic.TeleportMechanicListener(), plugin);
+        registerListener(new BeamMechanic.BeamMechanicListener(), plugin);
+        registerListener(new ParticleAuraMechanic.ParticleAuraMechanicListener(), plugin);
     }
 
     private static void registerListener(Listener listener, NexoAddon plugin) {

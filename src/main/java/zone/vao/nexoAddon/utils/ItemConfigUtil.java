@@ -7,15 +7,28 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Registry;
+import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.block.Biome;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.potion.PotionEffectType;
 import zone.vao.nexoAddon.NexoAddon;
 import zone.vao.nexoAddon.items.Components;
 import zone.vao.nexoAddon.items.Mechanics;
+import zone.vao.nexoAddon.items.mechanics.AreaAbilityMechanic;
+import zone.vao.nexoAddon.items.mechanics.AreaMiningMechanic;
+import zone.vao.nexoAddon.items.mechanics.BeamMechanic;
+import zone.vao.nexoAddon.items.mechanics.ConsumableMechanic;
+import zone.vao.nexoAddon.items.mechanics.OnHitMechanic;
+import zone.vao.nexoAddon.items.mechanics.ParticleAuraMechanic;
+import zone.vao.nexoAddon.items.mechanics.TeleportMechanic;
+import zone.vao.nexoAddon.items.mechanics.PassiveEffectMechanic;
 
 import java.io.File;
 import java.util.*;
@@ -140,6 +153,14 @@ public class ItemConfigUtil {
                 loadMagnetMechanic(itemSection, mechanic);
                 loadGrapplingHookMechanic(itemSection, mechanic);
                 loadSpiderManMechanic(itemSection, mechanic);
+                loadOnHitMechanic(itemSection, mechanic);
+                loadAreaMiningMechanic(itemSection, mechanic);
+                loadPassiveEffectMechanic(itemSection, mechanic);
+                loadConsumableMechanic(itemSection, mechanic);
+                loadAreaAbilityMechanic(itemSection, mechanic);
+                loadTeleportMechanic(itemSection, mechanic);
+                loadBeamMechanic(itemSection, mechanic);
+                loadParticleAuraMechanic(itemSection, mechanic);
             });
         }
     }
@@ -782,6 +803,549 @@ public class ItemConfigUtil {
         mechanic.setSpiderMan(enabled, wallClimbEnabled, climbSpeed, checkSlot,
             webShotEnabled, webMaxDistance, webPullSpeed, arcBoost, webCooldown,
             particleType, particleAmount, soundType, soundVolume, soundPitch, cooldownMessage, durabilityCost);
+    }
+
+    private static void loadOnHitMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.on_hit.effects")) {
+            return;
+        }
+
+        int cooldownSeconds = section.getInt("Mechanics.on_hit.cooldown", 0);
+
+        Particle particles = null;
+        String particleRaw = section.getString("Mechanics.on_hit.particles");
+        if (particleRaw != null && !particleRaw.isEmpty()) {
+            try {
+                particles = Particle.valueOf(particleRaw.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                NexoAddon.getInstance().getLogger().warning("Invalid Particle for on_hit mechanic: " + particleRaw);
+            }
+        }
+
+        List<OnHitMechanic.OnHitEffect> effects = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList("Mechanics.on_hit.effects")) {
+            Object typeRaw = entry.get("type");
+            if (typeRaw == null) {
+                continue;
+            }
+
+            PotionEffectType type = resolvePotionEffectType(String.valueOf(typeRaw));
+            if (type == null) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid PotionEffectType for on_hit mechanic: " + typeRaw);
+                continue;
+            }
+
+            int amplifier = (entry.get("amplifier") instanceof Number a) ? a.intValue() : 0;
+            int duration = (entry.get("duration") instanceof Number d) ? d.intValue() : 1;
+
+            effects.add(new OnHitMechanic.OnHitEffect(type, amplifier, duration));
+        }
+
+        if (effects.isEmpty()) {
+            return;
+        }
+
+        mechanic.setOnHitMechanic(effects, cooldownSeconds, particles);
+    }
+
+    private static void loadAreaMiningMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.area_mining")) {
+            return;
+        }
+
+        AreaMiningMechanic.Shape shape;
+        try {
+            shape = AreaMiningMechanic.Shape.valueOf(
+                section.getString("Mechanics.area_mining.shape", "LINE").toUpperCase());
+        } catch (IllegalArgumentException e) {
+            NexoAddon.getInstance().getLogger().warning(
+                "Invalid area_mining shape: " + section.getString("Mechanics.area_mining.shape"));
+            return;
+        }
+
+        boolean consumeDurability = section.getBoolean("Mechanics.area_mining.consume_durability", false);
+        int length = section.getInt("Mechanics.area_mining.length", 1);
+        int maxBlocks = section.getInt("Mechanics.area_mining.max_blocks", 64);
+        int radius = section.getInt("Mechanics.area_mining.radius", 1);
+        int depth = section.getInt("Mechanics.area_mining.depth", 1);
+
+        List<String> toolTypes = null;
+        if (section.contains("Mechanics.area_mining.tool_types")) {
+            toolTypes = section.getStringList("Mechanics.area_mining.tool_types");
+        }
+
+        Set<Material> deniedBlocks = null;
+        if (section.contains("Mechanics.area_mining.denied_blocks")) {
+            deniedBlocks = new HashSet<>();
+            for (String raw : section.getStringList("Mechanics.area_mining.denied_blocks")) {
+                Material material = Material.matchMaterial(raw);
+                if (material != null) {
+                    deniedBlocks.add(material);
+                } else {
+                    NexoAddon.getInstance().getLogger()
+                        .warning("Invalid denied_blocks material for area_mining: " + raw);
+                }
+            }
+        }
+
+        mechanic.setAreaMiningMechanic(shape, consumeDurability, length, maxBlocks, radius, depth, toolTypes,
+            deniedBlocks);
+    }
+
+    private static void loadPassiveEffectMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.passive_effect")) {
+            return;
+        }
+
+        String base = "Mechanics.passive_effect.";
+        String slot = section.getString(base + "slot", "mainhand").toLowerCase();
+        int reapplyTicks = section.getInt(base + "reapply_ticks", 40);
+
+        List<PassiveEffectMechanic.PassivePotionEffect> potionEffects = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(base + "potion_effects")) {
+            Object typeRaw = entry.get("type");
+            if (typeRaw == null) {
+                continue;
+            }
+            PotionEffectType type = PotionEffectType.getByName(String.valueOf(typeRaw));
+            if (type == null) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid PotionEffectType for passive_effect: " + typeRaw);
+                continue;
+            }
+            int amplifier = (entry.get("amplifier") instanceof Number n) ? n.intValue() : 0;
+            potionEffects.add(new PassiveEffectMechanic.PassivePotionEffect(type, amplifier));
+        }
+
+        List<PassiveEffectMechanic.PassiveAttributeModifier> attributeModifiers = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(base + "attribute_modifiers")) {
+            Object attrRaw = entry.get("attribute");
+            if (attrRaw == null) {
+                continue;
+            }
+            Attribute attribute = resolveAttribute(String.valueOf(attrRaw));
+            if (attribute == null) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid Attribute for passive_effect: " + attrRaw);
+                continue;
+            }
+            Object operationRaw = entry.get("operation");
+            String operationName = operationRaw == null ? "ADD_NUMBER" : String.valueOf(operationRaw);
+            AttributeModifier.Operation operation;
+            try {
+                operation = AttributeModifier.Operation.valueOf(operationName.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid attribute operation for passive_effect: " + entry.get("operation"));
+                continue;
+            }
+            double amount = (entry.get("amount") instanceof Number n) ? n.doubleValue() : 0.0;
+            attributeModifiers.add(new PassiveEffectMechanic.PassiveAttributeModifier(attribute, operation, amount));
+        }
+
+        boolean onSneak = false;
+        boolean onSprint = false;
+        int healthBelow = 100;
+        Set<Biome> biomes = new HashSet<>();
+        String worldTime = "any";
+        if (section.contains(base + "conditions")) {
+            String cond = base + "conditions.";
+            onSneak = section.getBoolean(cond + "on_sneak", false);
+            onSprint = section.getBoolean(cond + "on_sprint", false);
+            healthBelow = section.getInt(cond + "health_below", 100);
+            worldTime = section.getString(cond + "world_time", "any").toLowerCase();
+            for (String raw : section.getStringList(cond + "biomes")) {
+                Biome biome = resolveBiome(raw);
+                if (biome != null) {
+                    biomes.add(biome);
+                } else {
+                    NexoAddon.getInstance().getLogger().warning("Invalid Biome for passive_effect: " + raw);
+                }
+            }
+        }
+        PassiveEffectMechanic.PassiveConditions conditions =
+            new PassiveEffectMechanic.PassiveConditions(onSneak, onSprint, healthBelow, biomes, worldTime);
+
+        Particle ambientParticle = resolveParticle(section.getString(base + "ambient_particle"), "passive_effect");
+        Sound activateSound = resolveSound(section.getString(base + "activate_sound"), "passive_effect");
+        Sound deactivateSound = resolveSound(section.getString(base + "deactivate_sound"), "passive_effect");
+
+        mechanic.setPassiveEffectMechanic(slot, reapplyTicks, potionEffects, attributeModifiers, conditions,
+            ambientParticle, activateSound, deactivateSound);
+    }
+
+    private static void loadConsumableMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.consumable")) {
+            return;
+        }
+
+        String base = "Mechanics.consumable.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        boolean consumeItem = section.getBoolean(base + "consume_item", false);
+        double instantHeal = section.getDouble(base + "instant_heal", 0.0);
+        double instantDamage = section.getDouble(base + "instant_damage", 0.0);
+
+        List<ConsumableMechanic.ConsumableEffect> effects = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(base + "effects")) {
+            Object typeRaw = entry.get("type");
+            if (typeRaw == null) {
+                continue;
+            }
+            PotionEffectType type = resolvePotionEffectType(String.valueOf(typeRaw));
+            if (type == null) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid PotionEffectType for consumable mechanic: " + typeRaw);
+                continue;
+            }
+            int amplifier = (entry.get("amplifier") instanceof Number n) ? n.intValue() : 0;
+            int duration = (entry.get("duration") instanceof Number n) ? n.intValue() : 1;
+            double chance = (entry.get("chance") instanceof Number n) ? n.doubleValue() : 1.0;
+            effects.add(new ConsumableMechanic.ConsumableEffect(type, amplifier, duration, chance));
+        }
+
+        List<String> commands = section.getStringList(base + "commands");
+
+        // Conditions may live under a `conditions:` sub-section or directly on the consumable block.
+        boolean requireSneaking = readBoolean(section, base, "conditions.require_sneaking", "require_sneaking", false);
+        int requireHealthBelow = readInt(section, base, "conditions.require_health_below", "require_health_below", 100);
+        String requirePermission = readString(section, base, "conditions.require_permission", "require_permission", "");
+        ConsumableMechanic.ConsumableConditions conditions =
+            new ConsumableMechanic.ConsumableConditions(requireSneaking, requireHealthBelow, requirePermission);
+
+        Sound sound = resolveSound(section.getString(base + "sound"), "consumable");
+        Particle particle = resolveParticle(section.getString(base + "particle"), "consumable");
+        String messageSelf = section.getString(base + "message_self", "");
+        String messageBroadcast = section.getString(base + "message_broadcast", "");
+
+        mechanic.setConsumableMechanic(trigger, cooldownSeconds, consumeItem, instantHeal, instantDamage, effects,
+            commands, conditions, sound, particle, messageSelf, messageBroadcast);
+    }
+
+    private static boolean readBoolean(ConfigurationSection section, String base, String nested, String flat,
+        boolean def) {
+        if (section.contains(base + nested)) {
+            return section.getBoolean(base + nested, def);
+        }
+        return section.getBoolean(base + flat, def);
+    }
+
+    private static int readInt(ConfigurationSection section, String base, String nested, String flat, int def) {
+        if (section.contains(base + nested)) {
+            return section.getInt(base + nested, def);
+        }
+        return section.getInt(base + flat, def);
+    }
+
+    private static String readString(ConfigurationSection section, String base, String nested, String flat,
+        String def) {
+        if (section.contains(base + nested)) {
+            return section.getString(base + nested, def);
+        }
+        return section.getString(base + flat, def);
+    }
+
+    private static void loadAreaAbilityMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.area_ability")) {
+            return;
+        }
+
+        String base = "Mechanics.area_ability.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        double radius = section.getDouble(base + "radius", 5.0);
+        String targets = section.getString(base + "targets", "players").toLowerCase();
+        boolean includeSelf = section.getBoolean(base + "include_self", true);
+        int maxTargets = section.getInt(base + "max_targets", 0);
+
+        double healAmount = section.getDouble(base + "heal_amount", 0.0);
+        double damageAmount = section.getDouble(base + "damage_amount", 0.0);
+        double launchVelocity = section.getDouble(base + "launch_velocity", 0.0);
+
+        List<AreaAbilityMechanic.AbilityEffect> effects = parseAbilityEffects(section, base + "effects");
+        List<String> commands = section.getStringList(base + "commands");
+
+        double selfHeal = section.getDouble(base + "self_heal", 0.0);
+        double selfDamage = section.getDouble(base + "self_damage", 0.0);
+        List<AreaAbilityMechanic.AbilityEffect> selfEffects = parseAbilityEffects(section, base + "self_effects");
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+        String requirePermission = section.getString(cond + "require_permission", "");
+        int minTargetsRequired = section.getInt(cond + "min_targets_required", 0);
+        AreaAbilityMechanic.AbilityConditions conditions = new AreaAbilityMechanic.AbilityConditions(
+            requireSneaking, requireHealthBelow, requirePermission, minTargetsRequired);
+
+        Particle particle = resolveParticle(section.getString(base + "particle"), "area_ability");
+        Particle waveParticle = resolveParticle(section.getString(base + "wave_particle"), "area_ability");
+        Sound sound = resolveSound(section.getString(base + "sound"), "area_ability");
+        Sound soundTarget = resolveSound(section.getString(base + "sound_target"), "area_ability");
+
+        mechanic.setAreaAbilityMechanic(trigger, cooldownSeconds, radius, targets, includeSelf, maxTargets,
+            healAmount, damageAmount, launchVelocity, effects, commands, selfHeal, selfDamage, selfEffects,
+            conditions, particle, waveParticle, sound, soundTarget);
+    }
+
+    private static List<AreaAbilityMechanic.AbilityEffect> parseAbilityEffects(ConfigurationSection section,
+        String path) {
+        List<AreaAbilityMechanic.AbilityEffect> list = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(path)) {
+            Object typeRaw = entry.get("type");
+            if (typeRaw == null) {
+                continue;
+            }
+            PotionEffectType type = resolvePotionEffectType(String.valueOf(typeRaw));
+            if (type == null) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid PotionEffectType for area_ability: " + typeRaw);
+                continue;
+            }
+            int amplifier = (entry.get("amplifier") instanceof Number n) ? n.intValue() : 0;
+            int duration = (entry.get("duration") instanceof Number n) ? n.intValue() : 1;
+            double chance = (entry.get("chance") instanceof Number n) ? n.doubleValue() : 1.0;
+            list.add(new AreaAbilityMechanic.AbilityEffect(type, amplifier, duration, chance));
+        }
+        return list;
+    }
+
+    private static void loadTeleportMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.teleport")) {
+            return;
+        }
+
+        String base = "Mechanics.teleport.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        String mode = section.getString(base + "mode", "look_direction").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        double distance = section.getDouble(base + "distance", 15.0);
+        boolean behindTarget = section.getBoolean(base + "behind_target", false);
+
+        double arriveDamageRadius = section.getDouble(base + "arrive_damage_radius", 0.0);
+        double arriveDamage = section.getDouble(base + "arrive_damage", 0.0);
+        double launchVelocity = section.getDouble(base + "launch_velocity", 0.0);
+
+        List<AreaAbilityMechanic.AbilityEffect> effects = parseAbilityEffects(section, base + "effects");
+        List<String> commands = section.getStringList(base + "commands");
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+        String requirePermission = section.getString(cond + "require_permission", "");
+        boolean requireLineOfSight = section.getBoolean(cond + "require_line_of_sight", false);
+        TeleportMechanic.TeleportConditions conditions = new TeleportMechanic.TeleportConditions(
+            requireSneaking, requireHealthBelow, requirePermission, requireLineOfSight);
+
+        List<TeleportMechanic.ParticleEntry> originParticles =
+            parseParticleEntries(section, base + "origin_particles");
+        List<TeleportMechanic.ParticleEntry> destinationParticles =
+            parseParticleEntries(section, base + "destination_particles");
+        Particle trailParticle = resolveParticle(section.getString(base + "trail_particle"), "teleport");
+        Sound soundOrigin = resolveSound(section.getString(base + "sound_origin"), "teleport");
+        Sound soundDestination = resolveSound(section.getString(base + "sound_destination"), "teleport");
+
+        mechanic.setTeleportMechanic(trigger, mode, cooldownSeconds, distance, behindTarget, arriveDamageRadius,
+            arriveDamage, launchVelocity, effects, commands, conditions, originParticles, destinationParticles,
+            trailParticle, soundOrigin, soundDestination);
+    }
+
+    private static List<TeleportMechanic.ParticleEntry> parseParticleEntries(ConfigurationSection section,
+        String path) {
+        List<TeleportMechanic.ParticleEntry> list = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(path)) {
+            Object particleRaw = entry.get("particle");
+            if (particleRaw == null) {
+                continue;
+            }
+            Particle particle = resolveParticle(String.valueOf(particleRaw), "teleport");
+            if (particle == null) {
+                continue;
+            }
+            int count = (entry.get("count") instanceof Number n) ? n.intValue() : 1;
+            list.add(new TeleportMechanic.ParticleEntry(particle, count));
+        }
+        return list;
+    }
+
+    private static void loadBeamMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.beam")) {
+            return;
+        }
+
+        String base = "Mechanics.beam.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        double range = section.getDouble(base + "range", 10.0);
+        double width = section.getDouble(base + "width", 0.4);
+        double height = section.getDouble(base + "height", 0.4);
+        boolean pierce = section.getBoolean(base + "pierce", true);
+        boolean pierceBlocks = section.getBoolean(base + "pierce_blocks", false);
+
+        double damage = section.getDouble(base + "damage", 0.0);
+        double knockback = section.getDouble(base + "knockback", 0.0);
+        List<AreaAbilityMechanic.AbilityEffect> effects = parseAbilityEffects(section, base + "effects");
+        List<String> commands = section.getStringList(base + "commands");
+
+        List<AreaAbilityMechanic.AbilityEffect> selfEffects = parseAbilityEffects(section, base + "self_effects");
+        double selfDamage = section.getDouble(base + "self_damage", 0.0);
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+        String requirePermission = section.getString(cond + "require_permission", "");
+        BeamMechanic.BeamConditions conditions = new BeamMechanic.BeamConditions(
+            requireSneaking, requireHealthBelow, requirePermission);
+
+        List<BeamMechanic.BeamSegment> beamSegments = parseBeamSegments(section, base + "beam_segments");
+        Particle hitParticle = resolveParticle(section.getString(base + "hit_particle"), "beam");
+        Sound sound = resolveSound(section.getString(base + "sound"), "beam");
+        Sound soundHit = resolveSound(section.getString(base + "sound_hit"), "beam");
+
+        mechanic.setBeamMechanic(trigger, cooldownSeconds, range, width, height, pierce, pierceBlocks, damage,
+            knockback, effects, commands, selfEffects, selfDamage, conditions, beamSegments, hitParticle, sound,
+            soundHit);
+    }
+
+    private static List<BeamMechanic.BeamSegment> parseBeamSegments(ConfigurationSection section, String path) {
+        List<BeamMechanic.BeamSegment> list = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(path)) {
+            Object particleRaw = entry.get("particle");
+            Particle particle = particleRaw == null
+                ? null : resolveParticle(String.valueOf(particleRaw), "beam");
+            if (particle == null) {
+                continue;
+            }
+            int fromPct = (entry.get("from_pct") instanceof Number n) ? n.intValue() : 0;
+            int toPct = (entry.get("to_pct") instanceof Number n) ? n.intValue() : 100;
+            int count = (entry.get("count") instanceof Number n) ? n.intValue() : 1;
+            list.add(new BeamMechanic.BeamSegment(fromPct, toPct, particle, count));
+        }
+        if (list.isEmpty()) {
+            // Default: single CRIT segment spanning the full beam.
+            list.add(new BeamMechanic.BeamSegment(0, 100, Particle.CRIT, 1));
+        }
+        return list;
+    }
+
+    private static void loadParticleAuraMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.particle_aura")) {
+            return;
+        }
+
+        String base = "Mechanics.particle_aura.";
+        String slot = section.getString(base + "slot", "offhand").toLowerCase();
+        int intervalTicks = section.getInt(base + "interval_ticks", 2);
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        boolean requireSprinting = section.getBoolean(cond + "require_sprinting", false);
+        Set<String> worlds = new HashSet<>(section.getStringList(cond + "worlds"));
+        ParticleAuraMechanic.AuraConditions conditions =
+            new ParticleAuraMechanic.AuraConditions(requireSneaking, requireSprinting, worlds);
+
+        List<ParticleAuraMechanic.AuraLayer> layers = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(base + "layers")) {
+            Object shapeRaw = entry.get("shape");
+            String shape = shapeRaw == null ? "ring" : String.valueOf(shapeRaw).toLowerCase();
+            Object particleRaw = entry.get("particle");
+            Particle particle = particleRaw == null ? null : resolveParticle(String.valueOf(particleRaw), "particle_aura");
+            if (particle == null) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid or missing Particle for particle_aura layer: " + particleRaw);
+                continue;
+            }
+            double radius = numberOr(entry.get("radius"), 1.0);
+            int count = (int) numberOr(entry.get("count"), 1);
+            double rotationSpeed = numberOr(entry.get("rotation_speed"), 0.1);
+            double yOffset = numberOr(entry.get("y_offset"), 0.0);
+            double height = numberOr(entry.get("height"), 2.0);
+            int orbCount = (int) numberOr(entry.get("orb_count"), 3);
+            boolean onlyOnSprint = entry.get("only_on_sprint") instanceof Boolean b && b;
+            boolean onlyOnSneak = entry.get("only_on_sneak") instanceof Boolean b && b;
+            boolean onlyOnDamage = entry.get("only_on_damage") instanceof Boolean b && b;
+            double countSprintMultiplier = numberOr(entry.get("count_sprint_multiplier"), 1.0);
+
+            layers.add(new ParticleAuraMechanic.AuraLayer(shape, particle, radius, count, rotationSpeed, yOffset,
+                height, orbCount, onlyOnSprint, onlyOnSneak, onlyOnDamage, countSprintMultiplier));
+        }
+
+        if (layers.isEmpty()) {
+            return;
+        }
+
+        mechanic.setParticleAuraMechanic(slot, intervalTicks, conditions, layers);
+    }
+
+    private static double numberOr(Object raw, double def) {
+        return (raw instanceof Number n) ? n.doubleValue() : def;
+    }
+
+    private static Attribute resolveAttribute(String raw) {
+        // Accept legacy enum names (e.g. GENERIC_MAX_HEALTH) as well as registry keys (max_health)
+        String name = raw.toLowerCase().replaceFirst("^(generic|player|zombie|horse)[._]", "");
+        NamespacedKey key = NamespacedKey.fromString(name.contains(":") ? name : "minecraft:" + name);
+        Attribute attribute = key == null ? null : Registry.ATTRIBUTE.get(key);
+        if (attribute != null) {
+            return attribute;
+        }
+        try {
+            return Attribute.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static Biome resolveBiome(String raw) {
+        String name = raw.toLowerCase();
+        NamespacedKey key = NamespacedKey.fromString(name.contains(":") ? name : "minecraft:" + name);
+        Biome biome = key == null ? null : Registry.BIOME.get(key);
+        if (biome != null) {
+            return biome;
+        }
+        try {
+            return Biome.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private static Particle resolveParticle(String raw, String context) {
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        try {
+            return Particle.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            NexoAddon.getInstance().getLogger().warning("Invalid Particle for " + context + ": " + raw);
+            return null;
+        }
+    }
+
+    private static Sound resolveSound(String raw, String context) {
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        try {
+            return Sound.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            NexoAddon.getInstance().getLogger().warning("Invalid Sound for " + context + ": " + raw);
+            return null;
+        }
+    }
+
+    private static PotionEffectType resolvePotionEffectType(String raw) {
+        String name = raw.toLowerCase();
+        if (!name.contains(":")) {
+            name = "minecraft:" + name;
+        }
+        NamespacedKey key = NamespacedKey.fromString(name);
+        PotionEffectType type = key == null ? null : Registry.EFFECT.get(key);
+        if (type != null) {
+            return type;
+        }
+        // Legacy field names (e.g. SLOW, INCREASE_DAMAGE) don't match registry keys.
+        return PotionEffectType.getByName(raw);
     }
 
     private static void parseItemList(List<String> rawItems, List<Material> materials, List<String> nexoIds) {

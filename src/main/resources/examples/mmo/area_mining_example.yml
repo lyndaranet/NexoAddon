@@ -1,0 +1,46 @@
+# Smaragd Spitzhacke — line mining (pickaxe only)
+SMARAGD_SPITZHACKE:
+  displayname: "<green>Smaragd Spitzhacke"
+  Mechanics:
+    area_mining:
+      shape: line
+      length: 4
+      consume_durability: true
+      tool_types:
+        - pickaxe
+
+# Smaragd Schaufel — line mining (shovel only, shorter line)
+SMARAGD_SCHAUFEL:
+  displayname: "<green>Smaragd Schaufel"
+  Mechanics:
+    area_mining:
+      shape: line
+      length: 3
+      consume_durability: true
+      tool_types:
+        - shovel
+
+# Vein-Mining Axt — breaks connected logs
+VEIN_AXE:
+  displayname: "<gold>Vein Axt"
+  Mechanics:
+    area_mining:
+      shape: vein
+      max_blocks: 32
+      consume_durability: true
+      tool_types:
+        - axe
+
+# 3x3 Hammer — cube mining, no depth filter, no tool restriction
+HAMMER:
+  displayname: "<dark_gray>Hammer"
+  Mechanics:
+    area_mining:
+      shape: cube
+      radius: 1
+      depth: 1
+      consume_durability: true
+      denied_blocks:
+        - OBSIDIAN
+        - CRYING_OBSIDIAN
+        - BEDROCK
