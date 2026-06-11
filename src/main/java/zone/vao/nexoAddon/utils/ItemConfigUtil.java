@@ -3,6 +3,7 @@ package zone.vao.nexoAddon.utils;
 import com.nexomc.nexo.api.NexoItems;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -1265,9 +1266,20 @@ public class ItemConfigUtil {
             boolean onlyOnSneak = entry.get("only_on_sneak") instanceof Boolean b && b;
             boolean onlyOnDamage = entry.get("only_on_damage") instanceof Boolean b && b;
             double countSprintMultiplier = numberOr(entry.get("count_sprint_multiplier"), 1.0);
+            Object dustColorRaw = entry.get("dust_color");
+            Color dustColor = dustColorRaw != null ? parseColor(String.valueOf(dustColorRaw)) : null;
+            Object dustColorToRaw = entry.get("dust_color_to");
+            Color dustColorTo = dustColorToRaw != null ? parseColor(String.valueOf(dustColorToRaw)) : null;
+            float dustSize = (float) numberOr(entry.get("dust_size"), 1.0);
+            double topRadius = numberOr(entry.get("top_radius"), -1.0);
+            double turns = numberOr(entry.get("turns"), 2.0);
+            boolean clockwise = entry.get("clockwise") instanceof Boolean b && b;
+            double scatter = numberOr(entry.get("scatter"), 0.0);
+            int scatterCount = (int) numberOr(entry.get("scatter_count"), 0);
 
             layers.add(new ParticleAuraMechanic.AuraLayer(shape, particle, radius, count, rotationSpeed, yOffset,
-                height, orbCount, onlyOnSprint, onlyOnSneak, onlyOnDamage, countSprintMultiplier));
+                height, orbCount, onlyOnSprint, onlyOnSneak, onlyOnDamage, countSprintMultiplier,
+                dustColor, dustColorTo, dustSize, topRadius, turns, clockwise, scatter, scatterCount));
         }
 
         if (layers.isEmpty()) {
@@ -1279,6 +1291,38 @@ public class ItemConfigUtil {
 
     private static double numberOr(Object raw, double def) {
         return (raw instanceof Number n) ? n.doubleValue() : def;
+    }
+
+    private static Color parseColor(String raw) {
+        if (raw == null || raw.isEmpty()) return null;
+        if (raw.startsWith("#")) {
+            try {
+                int hex = Integer.parseInt(raw.substring(1), 16);
+                return Color.fromRGB((hex >> 16) & 0xFF, (hex >> 8) & 0xFF, hex & 0xFF);
+            } catch (NumberFormatException ignored) {}
+        }
+        return switch (raw.toUpperCase()) {
+            case "RED" -> Color.RED;
+            case "BLUE" -> Color.BLUE;
+            case "GREEN" -> Color.GREEN;
+            case "WHITE" -> Color.WHITE;
+            case "BLACK" -> Color.BLACK;
+            case "YELLOW" -> Color.YELLOW;
+            case "ORANGE" -> Color.ORANGE;
+            case "PURPLE" -> Color.PURPLE;
+            case "AQUA" -> Color.AQUA;
+            case "FUCHSIA" -> Color.FUCHSIA;
+            case "LIME" -> Color.LIME;
+            case "MAROON" -> Color.MAROON;
+            case "NAVY" -> Color.NAVY;
+            case "OLIVE" -> Color.OLIVE;
+            case "SILVER" -> Color.SILVER;
+            case "TEAL" -> Color.TEAL;
+            default -> {
+                NexoAddon.getInstance().getLogger().warning("Unknown dust color: " + raw);
+                yield null;
+            }
+        };
     }
 
     private static Attribute resolveAttribute(String raw) {
@@ -1314,12 +1358,19 @@ public class ItemConfigUtil {
         if (raw == null || raw.isEmpty()) {
             return null;
         }
+        // 1. Bukkit enum name (FLAME, CRIT, ENCHANTMENT_TABLE, …)
         try {
             return Particle.valueOf(raw.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            NexoAddon.getInstance().getLogger().warning("Invalid Particle for " + context + ": " + raw);
-            return null;
+        } catch (IllegalArgumentException ignored) {}
+        // 2. Minecraft namespaced key as on the wiki (flame, enchanted_hit, minecraft:flame, …)
+        String key = raw.toLowerCase().startsWith("minecraft:") ? raw.substring(10).toLowerCase() : raw.toLowerCase();
+        for (Particle p : Particle.values()) {
+            if (p.getKey().getKey().equals(key)) {
+                return p;
+            }
         }
+        NexoAddon.getInstance().getLogger().warning("Invalid Particle for " + context + ": " + raw);
+        return null;
     }
 
     private static Sound resolveSound(String raw, String context) {

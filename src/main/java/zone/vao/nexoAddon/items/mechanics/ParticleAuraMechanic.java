@@ -2,6 +2,7 @@ package zone.vao.nexoAddon.items.mechanics;
 
 import com.nexomc.nexo.api.NexoItems;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -28,22 +29,27 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Renders a continuous animated particle aura around the player while the configured item is held
- * in a given slot. Built from one or more independent animated {@link AuraLayer}s, driven by a
- * single per-player repeating task. One config block ({@code Mechanics.particle_aura}).
+ * Renders a continuous animated particle aura around the player while the configured item is held in a given slot.
+ * Built from one or more independent animated {@link AuraLayer}s, driven by a single per-player repeating task. One
+ * config block ({@code Mechanics.particle_aura}).
  */
 public record ParticleAuraMechanic(String slot, int intervalTicks, AuraConditions conditions,
                                    List<AuraLayer> layers) {
 
     public record AuraLayer(String shape, Particle particle, double radius, int count, double rotationSpeed,
                             double yOffset, double height, int orbCount, boolean onlyOnSprint, boolean onlyOnSneak,
-                            boolean onlyOnDamage, double countSprintMultiplier) {
+                            boolean onlyOnDamage, double countSprintMultiplier,
+                            Color dustColor, Color dustColorTo, float dustSize,
+                            double topRadius, double turns, boolean clockwise,
+                            double scatter, int scatterCount) {
     }
 
     public record AuraConditions(boolean requireSneaking, boolean requireSprinting, Set<String> worlds) {
     }
 
-    /** Mutable per-player animation state. {@code phase} is shared; each layer scales it by its own speed. */
+    /**
+     * Mutable per-player animation state. {@code phase} is shared; each layer scales it by its own speed.
+     */
     private static final class AuraState {
         double phase;
         final double baseStep;
@@ -53,7 +59,9 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
         }
     }
 
-    /** Resolved active item for a player: its Nexo id plus the mechanic instance. */
+    /**
+     * Resolved active item for a player: its Nexo id plus the mechanic instance.
+     */
     private record Active(String id, ParticleAuraMechanic mechanic) {
     }
 
@@ -121,7 +129,9 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
 
         // --- Lifecycle -------------------------------------------------------
 
-        /** Re-evaluate one tick later, so inventory/slot changes have settled. */
+        /**
+         * Re-evaluate one tick later, so inventory/slot changes have settled.
+         */
         private void scheduleRefresh(Player player) {
             Bukkit.getScheduler().runTaskLater(NexoAddon.getInstance(), () -> refresh(player), 1L);
         }
@@ -226,12 +236,24 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
         private static Active findActive(Player player) {
             PlayerInventory inv = player.getInventory();
             Active a;
-            if ((a = matchSlot(inv.getItemInMainHand(), "mainhand")) != null) return a;
-            if ((a = matchSlot(inv.getItemInOffHand(), "offhand")) != null) return a;
-            if ((a = matchSlot(inv.getHelmet(), "armor_head")) != null) return a;
-            if ((a = matchSlot(inv.getChestplate(), "armor_chest")) != null) return a;
-            if ((a = matchSlot(inv.getLeggings(), "armor_legs")) != null) return a;
-            if ((a = matchSlot(inv.getBoots(), "armor_feet")) != null) return a;
+            if ((a = matchSlot(inv.getItemInMainHand(), "mainhand")) != null) {
+                return a;
+            }
+            if ((a = matchSlot(inv.getItemInOffHand(), "offhand")) != null) {
+                return a;
+            }
+            if ((a = matchSlot(inv.getHelmet(), "armor_head")) != null) {
+                return a;
+            }
+            if ((a = matchSlot(inv.getChestplate(), "armor_chest")) != null) {
+                return a;
+            }
+            if ((a = matchSlot(inv.getLeggings(), "armor_legs")) != null) {
+                return a;
+            }
+            if ((a = matchSlot(inv.getBoots(), "armor_feet")) != null) {
+                return a;
+            }
             return null;
         }
 
@@ -252,9 +274,12 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
         }
 
         private static boolean slotMatches(String configSlot, String physicalSlot) {
-            return switch (configSlot.toLowerCase()) {
-                case "any" -> physicalSlot.equals("mainhand") || physicalSlot.equals("offhand");
-                default -> configSlot.equalsIgnoreCase(physicalSlot);
+            // Strip underscores so OFF_HAND/off_hand/offhand all match "offhand", etc.
+            String c = configSlot.toLowerCase().replace("_", "");
+            String p = physicalSlot.replace("_", "");
+            return switch (c) {
+                case "any" -> p.equals("mainhand") || p.equals("offhand");
+                default -> c.equals(p);
             };
         }
 
@@ -275,7 +300,9 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
             return Math.max(1, (int) Math.round(layer.count() * mult));
         }
 
-        /** Scale the shared phase by this layer's rotation speed (and direction). */
+        /**
+         * Scale the shared phase by this layer's rotation speed (and direction).
+         */
         private static double layerPhase(AuraState state, AuraLayer layer) {
             if (state == null || state.baseStep <= 0) {
                 return 0.0;
@@ -297,9 +324,42 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 case "random" -> renderRandom(world, center, layer, effCount);
                 case "tornado" -> renderTornado(world, center, layer, phase, effCount);
                 case "orbit" -> renderOrbit(world, center, layer, phase, effCount);
+                case "vortex" -> renderVortex(world, center, layer, phase, effCount);
+                case "wings" -> renderWings(world, center, layer, phase, effCount);
                 default -> { /* unknown shape — render nothing */ }
             }
         }
+
+        // --- Particle spawn helpers (handle dust/transition particles that require extra data) ---
+
+        @SuppressWarnings("unchecked")
+        private static <T> T dustOptions(AuraLayer layer) {
+            Class<?> type = layer.particle().getDataType();
+            Color from = layer.dustColor() != null ? layer.dustColor() : Color.RED;
+            float size = layer.dustSize() > 0 ? layer.dustSize() : 1.0f;
+            if (type == Particle.DustOptions.class) {
+                return (T) new Particle.DustOptions(from, size);
+            }
+            if (type == Particle.DustTransition.class) {
+                Color to = layer.dustColorTo() != null ? layer.dustColorTo() : Color.fromRGB(0, 0, 0);
+                return (T) new Particle.DustTransition(from, to, size);
+            }
+            return null;
+        }
+
+        private static void spawnOne(World world, Location loc, AuraLayer layer) {
+            Object data = dustOptions(layer);
+            int sc = layer.scatterCount() > 0 ? layer.scatterCount() : 1;
+            double off = Math.max(0.0, layer.scatter());
+            world.spawnParticle(layer.particle(), loc, sc, off, off, off, 0.0, data);
+        }
+
+        private static void spawnCluster(World world, Location loc, AuraLayer layer, int count) {
+            Object data = dustOptions(layer);
+            world.spawnParticle(layer.particle(), loc, count, 0.05, 0.05, 0.05, 0.0, data);
+        }
+
+        // --- Shape rendering -------------------------------------------------
 
         private static void renderRing(World world, Location center, AuraLayer layer, double phase, int effCount) {
             int points = clampPoints(effCount);
@@ -307,8 +367,7 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 double angle = phase + (2 * Math.PI * i / points);
                 double x = Math.cos(angle) * layer.radius();
                 double z = Math.sin(angle) * layer.radius();
-                world.spawnParticle(layer.particle(), center.clone().add(x, layer.yOffset() + 1.0, z),
-                    1, 0.0, 0.0, 0.0, 0.0);
+                spawnOne(world, center.clone().add(x, layer.yOffset() + 1.0, z), layer);
             }
         }
 
@@ -321,7 +380,7 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 for (double arm = 0; arm < 2 * Math.PI; arm += Math.PI) {
                     double x = Math.cos(angle + arm) * layer.radius();
                     double z = Math.sin(angle + arm) * layer.radius();
-                    world.spawnParticle(layer.particle(), center.clone().add(x, y, z), 1, 0.0, 0.0, 0.0, 0.0);
+                    spawnOne(world, center.clone().add(x, y, z), layer);
                 }
             }
         }
@@ -339,9 +398,7 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 double theta = golden * i + phase;
                 double x = Math.cos(theta) * r;
                 double z = Math.sin(theta) * r;
-                world.spawnParticle(layer.particle(),
-                    body.clone().add(x * layer.radius(), y * layer.radius(), z * layer.radius()),
-                    1, 0.0, 0.0, 0.0, 0.0);
+                spawnOne(world, body.clone().add(x * layer.radius(), y * layer.radius(), z * layer.radius()), layer);
             }
         }
 
@@ -354,7 +411,7 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 double r = Math.sqrt(1 - u * u);
                 double dist = Math.random() * layer.radius();
                 Vector v = new Vector(r * Math.cos(t), u, r * Math.sin(t)).multiply(dist);
-                world.spawnParticle(layer.particle(), body.clone().add(v), 1, 0.0, 0.0, 0.0, 0.0);
+                spawnOne(world, body.clone().add(v), layer);
             }
         }
 
@@ -370,7 +427,7 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 double radiusAtY = layer.radius() * (0.3 + 0.7 * (height <= 0 ? 1 : y / height));
                 double x = Math.cos(angle) * radiusAtY;
                 double z = Math.sin(angle) * radiusAtY;
-                world.spawnParticle(layer.particle(), center.clone().add(x, y, z), 1, 0.0, 0.0, 0.0, 0.0);
+                spawnOne(world, center.clone().add(x, y, z), layer);
             }
         }
 
@@ -380,8 +437,83 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
                 double angle = phase + (2 * Math.PI * k / orbs);
                 double x = Math.cos(angle) * layer.radius();
                 double z = Math.sin(angle) * layer.radius();
-                world.spawnParticle(layer.particle(), center.clone().add(x, layer.yOffset() + 1.0, z),
-                    effCount, 0.05, 0.05, 0.05, 0.0);
+                spawnCluster(world, center.clone().add(x, layer.yOffset() + 1.0, z), layer, effCount);
+            }
+        }
+
+        /**
+         * Helix-Vortex um den Spieler. Radius interpoliert linear von {@code radius} (Basis) zu {@code top_radius}
+         * (Spitze):
+         * <ul>
+         *   <li>{@code top_radius < radius}  → Trichter, oben schmaler</li>
+         *   <li>{@code top_radius > radius}  → unten schmal, oben breit</li>
+         *   <li>{@code top_radius == radius} → gerader Zylinder</li>
+         *   <li>{@code top_radius} nicht gesetzt (−1) → Zylinder mit {@code radius}</li>
+         * </ul>
+         * {@code orb_count} = Anzahl Helices, {@code turns} = volle Umdrehungen Basis→Spitze,
+         * {@code clockwise} = Wicklungsrichtung umkehren.
+         */
+        private static void renderVortex(World world, Location center, AuraLayer layer, double phase, int effCount) {
+            int arms = layer.orbCount() > 0 ? layer.orbCount() : 2;
+            int steps = clampPoints(effCount * 6);
+            double height = layer.height() > 0 ? layer.height() : 2.0;
+            double yBase = layer.yOffset();
+
+            double rBottom = layer.radius();
+            double rTop = layer.topRadius() >= 0 ? layer.topRadius() : rBottom;
+            double turns = layer.turns() > 0 ? layer.turns() : 2.0;
+            double wind = layer.clockwise() ? -1.0 : 1.0;
+
+            for (int arm = 0; arm < arms; arm++) {
+                double armOffset = 2 * Math.PI * arm / arms;
+                for (int i = 0; i < steps; i++) {
+                    double t = i / (double) steps;
+                    double r = rBottom + (rTop - rBottom) * t;
+                    double angle = phase + armOffset + wind * t * turns * 2 * Math.PI;
+                    double y = yBase + t * height;
+                    spawnOne(world, center.clone().add(Math.cos(angle) * r, y, Math.sin(angle) * r), layer);
+                }
+            }
+        }
+
+        /**
+         * Two symmetrical wings rendered relative to the player's facing direction. Wings flap up and down driven by
+         * {@code phase}. {@code radius} controls wingspan, {@code height} controls vertical arc, {@code y_offset}
+         * shifts the attachment point.
+         */
+        private static void renderWings(World world, Location center, AuraLayer layer, double phase, int effCount) {
+            double yawRad = Math.toRadians(center.getYaw());
+            // Right unit vector (perpendicular, pointing player's right)
+            double rx = Math.cos(yawRad);
+            double rz = Math.sin(yawRad);
+            // Back unit vector
+            double bx = Math.sin(yawRad);
+            double bz = -Math.cos(yawRad);
+
+            int points = clampPoints(Math.max(6, effCount * 4));
+            double span = layer.radius();
+            double wingHeight = layer.height() > 0 ? layer.height() : 1.2;
+            double yBase = layer.yOffset() + 1.3; // shoulder height
+
+            // Flap: oscillates between raised (+lift) and lowered (-lift)
+            double flapLift = Math.sin(phase * 0.6) * 0.35;
+
+            for (int side = -1; side <= 1; side += 2) { // -1 = left wing, +1 = right wing
+                for (int i = 0; i <= points; i++) {
+                    double t = i / (double) points; // 0 = root (body), 1 = tip
+                    // Lateral extent grows linearly to full span
+                    double lateral = t * span;
+                    // Vertical arc: peaks at mid-wing, tapers at root and tip
+                    double arc = Math.sin(t * Math.PI) * wingHeight * (1.0 + flapLift);
+                    // Sweep back: tip trails slightly behind shoulder
+                    double sweep = (1.0 - Math.cos(t * Math.PI)) * span * 0.25;
+
+                    double px = side * lateral * rx + sweep * bx;
+                    double pz = side * lateral * rz + sweep * bz;
+                    double py = yBase + arc;
+
+                    spawnOne(world, center.clone().add(px, py, pz), layer);
+                }
             }
         }
     }
