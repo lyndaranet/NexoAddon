@@ -62,7 +62,7 @@ public record BeamMechanic(String trigger, int cooldownSeconds, double range, do
 
         private static final Map<UUID, Long> cooldowns = new HashMap<>();
 
-        @EventHandler(ignoreCancelled = true)
+        @EventHandler
         public void onInteract(PlayerInteractEvent event) {
             if (event.getHand() != EquipmentSlot.HAND) {
                 return;

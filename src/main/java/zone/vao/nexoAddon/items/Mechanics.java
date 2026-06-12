@@ -62,6 +62,10 @@ public class Mechanics {
     private TeleportMechanic teleportMechanic;
     private BeamMechanic beamMechanic;
     private ParticleAuraMechanic particleAuraMechanic;
+    private ProjectileMechanic projectileMechanic;
+    private ShapeWaveMechanic shapeWaveMechanic;
+    private BowMechanic bowMechanic;
+    private DashMechanic dashMechanic;
 
     public Mechanics(String id) {
         this.id = id;
@@ -306,6 +310,45 @@ public class Mechanics {
         this.particleAuraMechanic = new ParticleAuraMechanic(slot, intervalTicks, conditions, layers);
     }
 
+    public void setProjectileMechanic(String trigger, int cooldownSeconds, double range, double speed,
+        double hitRadius, int maxActive, double gravity, int bounces, int pierce, boolean homing,
+        double homingRadius, double homingStrength, double damage, double knockback,
+        List<AreaAbilityMechanic.AbilityEffect> effects, List<String> commands, List<String> blockCommands,
+        double explosionRadius, double explosionDamage, List<AreaAbilityMechanic.AbilityEffect> explosionEffects,
+        org.bukkit.Particle explosionParticle, ProjectileMechanic.ProjectileConditions conditions,
+        List<ProjectileMechanic.TrailEntry> trail, List<TeleportMechanic.ParticleEntry> impactParticles,
+        org.bukkit.Sound soundLaunch, org.bukkit.Sound soundImpact) {
+        this.projectileMechanic = new ProjectileMechanic(trigger, cooldownSeconds, range, speed, hitRadius,
+            maxActive, gravity, bounces, pierce, homing, homingRadius, homingStrength, damage, knockback, effects,
+            commands, blockCommands, explosionRadius, explosionDamage, explosionEffects, explosionParticle,
+            conditions, trail, impactParticles, soundLaunch, soundImpact);
+    }
+
+    public void setProjectileMechanic(ProjectileMechanic projectileMechanic) {
+        this.projectileMechanic = projectileMechanic;
+    }
+
+    public void setBowMechanic(BowMechanic bowMechanic) {
+        this.bowMechanic = bowMechanic;
+    }
+
+    public void setDashMechanic(DashMechanic dashMechanic) {
+        this.dashMechanic = dashMechanic;
+    }
+
+    public void setShapeWaveMechanic(String trigger, int cooldownSeconds, String shape, int maxTargets,
+        double range, double angle, double radius, double height, double minRadius, int rays, double arcDegrees,
+        double damage, int fireDurationSeconds, double knockback, List<AreaAbilityMechanic.AbilityEffect> effects,
+        List<String> commands, List<AreaAbilityMechanic.AbilityEffect> selfEffects, double selfDamage,
+        double selfHeal, ShapeWaveMechanic.ShapeConditions conditions, double particleDensity, boolean animate,
+        int animateTicks, List<ProjectileMechanic.TrailEntry> fillParticles, org.bukkit.Sound sound,
+        org.bukkit.Sound soundHit) {
+        this.shapeWaveMechanic = new ShapeWaveMechanic(trigger, cooldownSeconds, shape, maxTargets, range, angle,
+            radius, height, minRadius, rays, arcDegrees, damage, fireDurationSeconds, knockback, effects, commands,
+            selfEffects, selfDamage, selfHeal, conditions, particleDensity, animate, animateTicks, fillParticles,
+            sound, soundHit);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -372,6 +415,12 @@ public class Mechanics {
         registerListener(new TeleportMechanic.TeleportMechanicListener(), plugin);
         registerListener(new BeamMechanic.BeamMechanicListener(), plugin);
         registerListener(new ParticleAuraMechanic.ParticleAuraMechanicListener(), plugin);
+        registerListener(new ProjectileMechanic.ProjectileMechanicListener(), plugin);
+        ProjectileMechanic.ProjectileMechanicListener.startProjectileTask();
+        registerListener(new ShapeWaveMechanic.ShapeWaveMechanicListener(), plugin);
+        registerListener(new BowMechanic.BowMechanicListener(), plugin);
+        registerListener(new DashMechanic.DashMechanicListener(), plugin);
+        DashMechanic.DashMechanicListener.startRechargeTask();
     }
 
     private static void registerListener(Listener listener, NexoAddon plugin) {

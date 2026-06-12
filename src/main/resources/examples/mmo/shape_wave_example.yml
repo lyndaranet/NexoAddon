@@ -1,0 +1,133 @@
+# ShapeWaveMechanic examples — instantly affects all entities within a configurable 3D shape
+# cast in the player's look direction (or around the player), with optional particle expansion.
+#
+# Drop one of these blocks into a Nexo item file under its item id.
+
+# Inferno Mace — fire cone, Flame + Smoke particles, animated
+INFERNO_MACE:
+  displayname: "<red>Inferno Keule"
+  Mechanics:
+    shape_wave:
+      trigger: right_click
+      cooldown: 6
+      shape: cone
+      range: 8.0
+      angle: 30.0
+      damage: 6.0
+      fire_duration: 3
+      fill_particles:
+        - particle: FLAME
+          count: 1
+          offset: 0.05
+        - particle: SMOKE_NORMAL
+          count: 1
+      animate: true
+      animate_ticks: 5
+      sound: ENTITY_BLAZE_SHOOT
+      sound_hit: ENTITY_PLAYER_HURT
+
+# Donnerkeule — wide wedge fan, knockback, Slowness
+DONNERKEULE:
+  displayname: "<yellow>Donnerkeule"
+  Mechanics:
+    shape_wave:
+      trigger: right_click
+      cooldown: 8
+      shape: wedge
+      range: 6.0
+      angle: 45.0
+      height: 1.5
+      damage: 4.0
+      knockback: 1.2
+      effects:
+        - type: SLOW
+          amplifier: 1
+          duration: 3
+      fill_particles:
+        - particle: CLOUD
+          count: 2
+          offset: 0.1
+        - particle: ENCHANTMENT_TABLE
+          count: 1
+      animate: true
+      animate_ticks: 4
+      sound: ENTITY_IRON_GOLEM_ATTACK
+      sound_hit: ENTITY_GENERIC_HURT
+
+# Nova Bomb — sphere burst around player, damages + poisons all nearby
+NOVA_BOMB_STAFF:
+  displayname: "<green>Nova-Stab"
+  Mechanics:
+    shape_wave:
+      trigger: shift_right_click
+      cooldown: 15
+      shape: nova
+      radius: 5.0
+      min_radius: 1.0
+      damage: 5.0
+      effects:
+        - type: POISON
+          amplifier: 1
+          duration: 4
+          chance: 0.8
+      self_damage: 2.0
+      conditions:
+        min_targets_required: 1
+      fill_particles:
+        - particle: SPELL_MOB
+          count: 2
+          offset: 0.2
+        - particle: END_ROD
+          count: 1
+      animate: true
+      animate_ticks: 8
+      sound: ENTITY_GENERIC_EXPLODE
+      sound_hit: ENTITY_PLAYER_HURT
+
+# Fan Blade — 3-ray spread attack, fire + damage
+FAN_BLADE:
+  displayname: "<gold>Fächerklinge"
+  Mechanics:
+    shape_wave:
+      trigger: right_click
+      cooldown: 5
+      shape: fan
+      range: 7.0
+      angle: 12.0
+      rays: 3
+      arc_degrees: 60.0
+      damage: 5.0
+      fire_duration: 2
+      fill_particles:
+        - particle: CRIT
+          count: 2
+        - particle: FLAME
+          count: 1
+          offset: 0.05
+      sound: ENTITY_ARROW_SHOOT
+      sound_hit: ENTITY_PLAYER_HURT
+
+# Phasenklinge — narrow cylinder, pierces through in a straight line
+PHASENKLINGE:
+  displayname: "<aqua>Phasenklinge"
+  Mechanics:
+    shape_wave:
+      trigger: right_click
+      cooldown: 3
+      shape: cylinder
+      range: 12.0
+      radius: 0.6
+      damage: 8.0
+      effects:
+        - type: SLOW
+          amplifier: 0
+          duration: 2
+      fill_particles:
+        - particle: END_ROD
+          count: 2
+        - particle: ENCHANTMENT_TABLE
+          count: 1
+          offset: 0.1
+      animate: false
+      sound: ENTITY_ARROW_SHOOT
+      sound_hit: ENTITY_PLAYER_HURT

@@ -1,0 +1,106 @@
+# Inferno Sword — flight dash in look direction, fire trail
+INFERNO_SWORD:
+  displayname: "<red>Inferno Schwert"
+  Mechanics:
+    dash:
+      trigger: right_click
+      mode: flight
+      direction: look
+      cooldown: 8
+      duration: 40
+      speed: 2.5
+      phase_effects:
+        - type: FIRE_RESISTANCE
+          amplifier: 0
+          duration_ticks: 50
+      phase_particles:
+        - particle: FIREWORKS_SPARK
+          count: 5
+          offset: 0.1
+      trail_interval_ticks: 1
+      activate_particles:
+        - particle: FLAME
+          count: 20
+          offset: 0.2
+      activate_sound: ENTITY_FIREWORK_ROCKET_LAUNCH
+
+# Sturmklingen — horizontal ground dash, 2 charges, impact knockback
+STURMKLINGEN:
+  displayname: "<aqua>Sturmklingen"
+  Mechanics:
+    dash:
+      trigger: right_click
+      mode: dash
+      direction: horizontal
+      charges: 2
+      charge_recharge_seconds: 6
+      speed: 3.0
+      impact_radius: 3.0
+      impact_damage: 3.0
+      impact_delay_ticks: 8
+      impact_effects:
+        - type: SLOW
+          amplifier: 1
+          duration: 2
+      impact_particles:
+        - particle: CLOUD
+          count: 20
+      impact_sound: ENTITY_PLAYER_ATTACK_SWEEP
+      conditions:
+        require_on_ground: true
+      phase_particles:
+        - particle: CRIT
+          count: 4
+      activate_sound: ENTITY_PLAYER_ATTACK_STRONG
+
+# Geisterschritt — blink dash, passes through non-solid blocks, brief invincibility
+GEISTERSCHRITT_DAGGER:
+  displayname: "<gray>Geisterschritt"
+  Mechanics:
+    dash:
+      trigger: shift_right_click
+      mode: blink_dash
+      direction: look
+      cooldown: 5
+      duration: 8
+      speed: 8.0
+      phase_invincibility_ticks: 12
+      phase_effects:
+        - type: INVISIBILITY
+          amplifier: 0
+          duration_ticks: 20
+      phase_particles:
+        - particle: SMOKE_NORMAL
+          count: 3
+      trail_interval_ticks: 1
+      activate_particles:
+        - particle: PORTAL
+          count: 15
+      activate_sound: ENTITY_ENDERMAN_TELEPORT
+
+# Adlerflügel — glide mode (double jump), 3 charges
+ADLERFLÜGEL:
+  displayname: "<yellow>Adlerflügel"
+  Mechanics:
+    dash:
+      trigger: double_jump
+      mode: glide
+      charges: 3
+      charge_recharge_seconds: 10
+      duration: 60
+      glow_during_dash: true
+      phase_effects:
+        - type: SLOW_FALLING
+          amplifier: 0
+          duration_ticks: 65
+      phase_particles:
+        - particle: END_ROD
+          count: 3
+          offset: 0.2
+      trail_interval_ticks: 2
+      activate_particles:
+        - particle: END_ROD
+          count: 25
+      activate_sound: ENTITY_PHANTOM_FLAP
+      conditions:
+        require_in_air: true

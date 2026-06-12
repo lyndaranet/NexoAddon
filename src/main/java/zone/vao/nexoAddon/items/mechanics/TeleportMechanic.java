@@ -50,7 +50,6 @@ public record TeleportMechanic(String trigger, String mode, int cooldownSeconds,
     public static final String TRIGGER_ON_HIT = "on_hit";
 
     private static final double STEP_SIZE = 0.25;
-    private static final double EYE_HEIGHT = 1.62;
 
     public record ParticleEntry(Particle particle, int count) {
     }
@@ -63,7 +62,7 @@ public record TeleportMechanic(String trigger, String mode, int cooldownSeconds,
 
         private static final Map<UUID, Long> cooldowns = new HashMap<>();
 
-        @EventHandler(ignoreCancelled = true)
+        @EventHandler
         public void onInteract(PlayerInteractEvent event) {
             if (event.getHand() != EquipmentSlot.HAND) {
                 return;
@@ -116,6 +115,7 @@ public record TeleportMechanic(String trigger, String mode, int cooldownSeconds,
             UUID playerId = player.getUniqueId();
 
             if (!conditionsMet(player, mechanic.conditions())) {
+                NexoAddon.getInstance().getLogger().info("[teleport-debug] -> conditions NOT met");
                 actionBar(player, "<red>Du kannst das gerade nicht benutzen.");
                 return;
             }
@@ -124,6 +124,7 @@ public record TeleportMechanic(String trigger, String mode, int cooldownSeconds,
             long remainingMs = remainingCooldown(playerId, mechanic.cooldownSeconds(), now);
             if (remainingMs > 0) {
                 long remainingSeconds = (remainingMs + 999) / 1000;
+                NexoAddon.getInstance().getLogger().info("[teleport-debug] -> on cooldown " + remainingSeconds + "s");
                 actionBar(player, "<red>Noch <bold>" + remainingSeconds + "s</bold> Cooldown!");
                 return;
             }
@@ -196,19 +197,42 @@ public record TeleportMechanic(String trigger, String mode, int cooldownSeconds,
         private static Location computeLookDirection(Player player, double distance) {
             Location eye = player.getEyeLocation();
             Vector dir = eye.getDirection().normalize();
-            Location lastSafe = eye.clone();
+            // Ray-march along the look direction to the furthest free point (stop before a wall).
+            Location furthest = eye.clone();
             int steps = (int) (distance / STEP_SIZE);
             for (int i = 1; i <= steps; i++) {
                 Location next = eye.clone().add(dir.clone().multiply(i * STEP_SIZE));
                 if (next.getBlock().getType().isSolid()) {
                     break;
                 }
-                lastSafe = next;
+                furthest = next;
             }
-            // Drop from eye level to feet.
-            Location feet = lastSafe.clone().subtract(0, EYE_HEIGHT, 0);
-            feet.setYaw(player.getLocation().getYaw());
-            feet.setPitch(player.getLocation().getPitch());
+            return findStandingPosition(furthest, player);
+        }
+
+        /**
+         * Turns a (possibly mid-air) look target into a safe standing position: searches downward
+         * for ground to stand on, and otherwise blinks to the air point itself if it has clearance.
+         */
+        @Nullable
+        private static Location findStandingPosition(Location airPoint, Player player) {
+            World world = airPoint.getWorld();
+            double x = Math.floor(airPoint.getX()) + 0.5;
+            double z = Math.floor(airPoint.getZ()) + 0.5;
+            int topY = airPoint.getBlockY();
+            float yaw = player.getLocation().getYaw();
+            float pitch = player.getLocation().getPitch();
+
+            // Drop to the first solid ground with two free blocks above (head + feet).
+            int lowerBound = Math.max(world.getMinHeight(), topY - 24);
+            for (int y = topY; y >= lowerBound; y--) {
+                Location feet = new Location(world, x, y, z, yaw, pitch);
+                if (feet.clone().subtract(0, 1, 0).getBlock().getType().isSolid() && isSafeStanding(feet)) {
+                    return feet;
+                }
+            }
+            // No ground found (blink over a void/cliff) — stay at the air point if it has clearance.
+            Location feet = new Location(world, x, topY, z, yaw, pitch);
             return isSafeStanding(feet) ? feet : null;
         }
 

@@ -65,7 +65,7 @@ public record ConsumableMechanic(String trigger, int cooldownSeconds, boolean co
             handleUse(player, item, mechanic, event, false);
         }
 
-        @EventHandler(ignoreCancelled = true)
+        @EventHandler
         public void onInteract(PlayerInteractEvent event) {
             // Only react to the main-hand invocation to avoid the off-hand double fire.
             if (event.getHand() != EquipmentSlot.HAND) {
