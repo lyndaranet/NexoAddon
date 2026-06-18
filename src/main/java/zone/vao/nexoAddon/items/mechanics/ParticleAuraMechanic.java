@@ -316,7 +316,11 @@ public record ParticleAuraMechanic(String slot, int intervalTicks, AuraCondition
 
         // --- Shape rendering -------------------------------------------------
 
-        private static void renderLayer(World world, Location center, AuraLayer layer, double phase, int effCount) {
+        /**
+         * Renders a single aura layer. Package-private so other mechanics (e.g. {@code BlockTriggerLaunchMechanic})
+         * can reuse the shape/particle system for their own buff auras.
+         */
+        static void renderLayer(World world, Location center, AuraLayer layer, double phase, int effCount) {
             switch (layer.shape()) {
                 case "ring" -> renderRing(world, center, layer, phase, effCount);
                 case "helix" -> renderHelix(world, center, layer, phase, effCount);

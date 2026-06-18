@@ -1,0 +1,101 @@
+# Wasserstab — classic water launch, water breathing while active
+WASSERSTAB:
+  displayname: "<aqua>Wasserstab"
+  Mechanics:
+    block_trigger_launch:
+      activation_cooldown: 15
+      duration: 8
+      per_launch_cooldown: 0.3
+      action_bar: true              # show cooldown + remaining buff time in the action bar (default: true)
+      trigger_blocks:
+        - WATER
+      launch_power: 1.2
+      active_effects:
+        - type: WATER_BREATHING
+          amplifier: 0
+          duration: 8
+      launch_effects:
+        - type: SLOW_FALLING
+          amplifier: 0
+          duration: 3
+      no_fall_damage_ticks: 60
+      aura_layers:
+        - shape: random
+          particle: WATER_SPLASH
+          radius: 0.6
+          count: 3
+      launch_particles:
+        - particle: WATER_SPLASH
+          count: 20
+          offset: 0.2
+        - particle: BUBBLE_COLUMN_UP
+          count: 15
+      launch_sound: ENTITY_DOLPHIN_JUMP
+      activate_particles:
+        - particle: WATER_SPLASH
+          count: 10
+      activate_sound: ITEM_BUCKET_FILL
+
+# Lavastab — lava launch with fire resistance, horizontal boost, surfing feel
+LAVASTAB:
+  displayname: "<red>Lavastab"
+  Mechanics:
+    block_trigger_launch:
+      activation_cooldown: 20
+      duration: 6
+      per_launch_cooldown: 0.4
+      trigger_blocks:
+        - LAVA
+      launch_power: 1.0
+      horizontal_power: 0.8
+      horizontal_source: movement
+      active_effects:
+        - type: FIRE_RESISTANCE
+          amplifier: 0
+          duration: 6
+      launch_effects:
+        - type: SPEED
+          amplifier: 1
+          duration: 2
+      no_fall_damage_ticks: 40
+      aura_layers:
+        - shape: ring
+          particle: FLAME
+          radius: 0.7
+          count: 4
+          rotation_speed: 0.2
+      launch_particles:
+        - particle: FLAME
+          count: 25
+          offset: 0.2
+        - particle: LAVA
+          count: 10
+      launch_sound: ENTITY_BLAZE_HURT
+      activate_particles:
+        - particle: FLAME
+          count: 12
+      activate_sound: ITEM_FIRECHARGE_USE
+
+# Schneetrampolin — bouncing off powder snow, no horizontal, frequent re-launch
+SCHNEETRAMPOLIN:
+  displayname: "<white>Schneetrampolin"
+  Mechanics:
+    block_trigger_launch:
+      activation_cooldown: 10
+      duration: 12
+      per_launch_cooldown: 0.15
+      trigger_blocks:
+        - POWDER_SNOW
+        - SNOW
+      launch_power: 0.9
+      no_fall_damage_ticks: 30
+      aura_layers:
+        - shape: ring
+          particle: SNOWFLAKE
+          radius: 0.5
+          count: 3
+      launch_particles:
+        - particle: SNOWFLAKE
+          count: 15
+      launch_sound: BLOCK_POWDER_SNOW_HIT
+      activate_sound: BLOCK_SNOW_BREAK

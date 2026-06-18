@@ -24,6 +24,7 @@ import zone.vao.nexoAddon.items.Components;
 import zone.vao.nexoAddon.items.Mechanics;
 import zone.vao.nexoAddon.items.mechanics.AreaAbilityMechanic;
 import zone.vao.nexoAddon.items.mechanics.AreaMiningMechanic;
+import zone.vao.nexoAddon.items.mechanics.BlockTriggerLaunchMechanic;
 import zone.vao.nexoAddon.items.mechanics.BeamMechanic;
 import zone.vao.nexoAddon.items.mechanics.ConsumableMechanic;
 import zone.vao.nexoAddon.items.mechanics.OnHitMechanic;
@@ -162,6 +163,7 @@ public class ItemConfigUtil {
                 loadTeleportMechanic(itemSection, mechanic);
                 loadBeamMechanic(itemSection, mechanic);
                 loadParticleAuraMechanic(itemSection, mechanic);
+                loadBlockTriggerLaunchMechanic(itemSection, mechanic);
             });
         }
     }
@@ -1245,15 +1247,26 @@ public class ItemConfigUtil {
         ParticleAuraMechanic.AuraConditions conditions =
             new ParticleAuraMechanic.AuraConditions(requireSneaking, requireSprinting, worlds);
 
+        List<ParticleAuraMechanic.AuraLayer> layers = parseAuraLayers(section, base + "layers", "particle_aura");
+
+        if (layers.isEmpty()) {
+            return;
+        }
+
+        mechanic.setParticleAuraMechanic(slot, intervalTicks, conditions, layers);
+    }
+
+    private static List<ParticleAuraMechanic.AuraLayer> parseAuraLayers(ConfigurationSection section, String path,
+        String context) {
         List<ParticleAuraMechanic.AuraLayer> layers = new ArrayList<>();
-        for (Map<?, ?> entry : section.getMapList(base + "layers")) {
+        for (Map<?, ?> entry : section.getMapList(path)) {
             Object shapeRaw = entry.get("shape");
             String shape = shapeRaw == null ? "ring" : String.valueOf(shapeRaw).toLowerCase();
             Object particleRaw = entry.get("particle");
-            Particle particle = particleRaw == null ? null : resolveParticle(String.valueOf(particleRaw), "particle_aura");
+            Particle particle = particleRaw == null ? null : resolveParticle(String.valueOf(particleRaw), context);
             if (particle == null) {
                 NexoAddon.getInstance().getLogger()
-                    .warning("Invalid or missing Particle for particle_aura layer: " + particleRaw);
+                    .warning("Invalid or missing Particle for " + context + " layer: " + particleRaw);
                 continue;
             }
             double radius = numberOr(entry.get("radius"), 1.0);
@@ -1281,12 +1294,72 @@ public class ItemConfigUtil {
                 height, orbCount, onlyOnSprint, onlyOnSneak, onlyOnDamage, countSprintMultiplier,
                 dustColor, dustColorTo, dustSize, topRadius, turns, clockwise, scatter, scatterCount));
         }
+        return layers;
+    }
 
-        if (layers.isEmpty()) {
+    private static void loadBlockTriggerLaunchMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.block_trigger_launch")) {
             return;
         }
 
-        mechanic.setParticleAuraMechanic(slot, intervalTicks, conditions, layers);
+        String base = "Mechanics.block_trigger_launch.";
+        int activationCooldown = (int) Math.round(section.getDouble(base + "activation_cooldown", 0));
+        int duration = (int) Math.round(section.getDouble(base + "duration", 8));
+        double perLaunchCooldown = section.getDouble(base + "per_launch_cooldown", 0.3);
+
+        Set<Material> triggerBlocks = new HashSet<>();
+        for (String raw : section.getStringList(base + "trigger_blocks")) {
+            try {
+                triggerBlocks.add(Material.valueOf(raw.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                NexoAddon.getInstance().getLogger()
+                    .warning("Invalid Material for block_trigger_launch trigger_blocks: " + raw);
+            }
+        }
+
+        int checkBlockOffset = section.getInt(base + "check_block_offset", 0);
+        double launchPower = section.getDouble(base + "launch_power", 1.0);
+        double horizontalPower = section.getDouble(base + "horizontal_power", 0.0);
+        String horizontalSource = section.getString(base + "horizontal_source", "movement").toLowerCase();
+
+        List<AreaAbilityMechanic.AbilityEffect> activeEffects = parseAbilityEffects(section, base + "active_effects");
+        List<AreaAbilityMechanic.AbilityEffect> launchEffects = parseAbilityEffects(section, base + "launch_effects");
+        int noFallDamageTicks = section.getInt(base + "no_fall_damage_ticks", 0);
+
+        List<ParticleAuraMechanic.AuraLayer> auraLayers =
+            parseAuraLayers(section, base + "aura_layers", "block_trigger_launch");
+        List<BlockTriggerLaunchMechanic.LaunchParticle> launchParticles =
+            parseLaunchParticles(section, base + "launch_particles");
+        List<BlockTriggerLaunchMechanic.LaunchParticle> activateParticles =
+            parseLaunchParticles(section, base + "activate_particles");
+
+        Sound launchSound = resolveSound(section.getString(base + "launch_sound"), "block_trigger_launch");
+        Sound activateSound = resolveSound(section.getString(base + "activate_sound"), "block_trigger_launch");
+        boolean showActionBar = section.getBoolean(base + "action_bar", true);
+
+        mechanic.setBlockTriggerLaunchMechanic(activationCooldown, duration, perLaunchCooldown, triggerBlocks,
+            checkBlockOffset, launchPower, horizontalPower, horizontalSource, activeEffects, launchEffects,
+            noFallDamageTicks, auraLayers, launchParticles, launchSound, activateParticles, activateSound,
+            showActionBar);
+    }
+
+    private static List<BlockTriggerLaunchMechanic.LaunchParticle> parseLaunchParticles(ConfigurationSection section,
+        String path) {
+        List<BlockTriggerLaunchMechanic.LaunchParticle> list = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(path)) {
+            Object particleRaw = entry.get("particle");
+            if (particleRaw == null) {
+                continue;
+            }
+            Particle particle = resolveParticle(String.valueOf(particleRaw), "block_trigger_launch");
+            if (particle == null) {
+                continue;
+            }
+            int count = (entry.get("count") instanceof Number n) ? n.intValue() : 1;
+            double offset = (entry.get("offset") instanceof Number n) ? n.doubleValue() : 0.0;
+            list.add(new BlockTriggerLaunchMechanic.LaunchParticle(particle, count, offset));
+        }
+        return list;
     }
 
     private static double numberOr(Object raw, double def) {

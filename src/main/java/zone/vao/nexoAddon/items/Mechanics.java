@@ -62,6 +62,7 @@ public class Mechanics {
     private TeleportMechanic teleportMechanic;
     private BeamMechanic beamMechanic;
     private ParticleAuraMechanic particleAuraMechanic;
+    private BlockTriggerLaunchMechanic blockTriggerLaunchMechanic;
 
     public Mechanics(String id) {
         this.id = id;
@@ -306,6 +307,20 @@ public class Mechanics {
         this.particleAuraMechanic = new ParticleAuraMechanic(slot, intervalTicks, conditions, layers);
     }
 
+    public void setBlockTriggerLaunchMechanic(int activationCooldownSeconds, int durationSeconds,
+        double perLaunchCooldownSeconds, java.util.Set<Material> triggerBlocks, int checkBlockOffset,
+        double launchPower, double horizontalPower, String horizontalSource,
+        List<AreaAbilityMechanic.AbilityEffect> activeEffects, List<AreaAbilityMechanic.AbilityEffect> launchEffects,
+        int noFallDamageTicks, List<ParticleAuraMechanic.AuraLayer> auraLayers,
+        List<BlockTriggerLaunchMechanic.LaunchParticle> launchParticles, org.bukkit.Sound launchSound,
+        List<BlockTriggerLaunchMechanic.LaunchParticle> activateParticles, org.bukkit.Sound activateSound,
+        boolean showActionBar) {
+        this.blockTriggerLaunchMechanic = new BlockTriggerLaunchMechanic(activationCooldownSeconds, durationSeconds,
+            perLaunchCooldownSeconds, triggerBlocks, checkBlockOffset, launchPower, horizontalPower, horizontalSource,
+            activeEffects, launchEffects, noFallDamageTicks, auraLayers, launchParticles, launchSound,
+            activateParticles, activateSound, showActionBar);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -372,6 +387,7 @@ public class Mechanics {
         registerListener(new TeleportMechanic.TeleportMechanicListener(), plugin);
         registerListener(new BeamMechanic.BeamMechanicListener(), plugin);
         registerListener(new ParticleAuraMechanic.ParticleAuraMechanicListener(), plugin);
+        registerListener(new BlockTriggerLaunchMechanic.BlockTriggerLaunchMechanicListener(), plugin);
     }
 
     private static void registerListener(Listener listener, NexoAddon plugin) {
