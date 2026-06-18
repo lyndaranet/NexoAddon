@@ -66,7 +66,7 @@ public record AreaAbilityMechanic(String trigger, int cooldownSeconds, double ra
         // Guards against the on_hit trigger re-entering itself when it deals damage to targets.
         private static final Set<UUID> processing = new HashSet<>();
 
-        @EventHandler(ignoreCancelled = true)
+        @EventHandler
         public void onInteract(PlayerInteractEvent event) {
             if (event.getHand() != EquipmentSlot.HAND) {
                 return;

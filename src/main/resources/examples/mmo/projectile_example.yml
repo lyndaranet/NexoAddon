@@ -1,0 +1,125 @@
+# Leerenstab — void projectile, Nausea + Blindness, purple trail
+LEERENSTAB:
+  displayname: "<dark_purple>Leerenstab"
+  Mechanics:
+    projectile:
+      trigger: right_click
+      cooldown: 8
+      range: 20
+      speed: 1.5
+      damage: 0.0
+      effects:
+        - type: NAUSEA
+          amplifier: 0
+          duration: 4
+        - type: BLINDNESS
+          amplifier: 0
+          duration: 4
+      trail:
+        - particle: SPELL_WITCH
+          count: 2
+          offset: 0.1
+        - particle: PORTAL
+          count: 1
+      impact_particles:
+        - particle: SPELL_WITCH
+          count: 20
+        - particle: PORTAL
+          count: 15
+      sound_launch: ENTITY_BLAZE_SHOOT
+      sound_impact: ENTITY_ENDERMAN_TELEPORT
+
+# Feuerkugel — gravity arc, explosion on impact
+FEUERKUGEL:
+  displayname: "<red>Feuerkugel"
+  Mechanics:
+    projectile:
+      trigger: right_click
+      cooldown: 6
+      range: 25
+      speed: 1.2
+      gravity: 0.04
+      damage: 4.0
+      explosion_radius: 3.0
+      explosion_damage: 6.0
+      explosion_effects:
+        - type: FIRE_RESISTANCE
+          amplifier: 0
+          duration: 3
+          chance: 1.0
+      trail:
+        - particle: FLAME
+          count: 3
+          offset: 0.05
+        - particle: SMOKE_NORMAL
+          count: 1
+      impact_particles:
+        - particle: FLAME
+          count: 40
+        - particle: EXPLOSION_NORMAL
+          count: 10
+      sound_launch: ENTITY_BLAZE_SHOOT
+      sound_impact: ENTITY_GENERIC_EXPLODE
+
+# Seelenpfeil — homing, pierces 2 enemies, Wither on hit
+SEELENPFEIL:
+  displayname: "<dark_blue>Seelenpfeil"
+  Mechanics:
+    projectile:
+      trigger: right_click
+      cooldown: 5
+      range: 30
+      speed: 2.0
+      pierce: 2
+      homing: true
+      homing_radius: 8.0
+      homing_strength: 0.12
+      damage: 5.0
+      effects:
+        - type: WITHER
+          amplifier: 1
+          duration: 3
+      trail:
+        - particle: SOUL
+          count: 2
+        - particle: END_ROD
+          count: 1
+          offset: 0.15
+      impact_particles:
+        - particle: SOUL
+          count: 25
+      sound_launch: ENTITY_ARROW_SHOOT
+      sound_impact: ENTITY_WITHER_HURT
+
+# Chaos-Orb — bounces 3x, random witch particles, no damage but heavy debuffs
+CHAOS_ORB:
+  displayname: "<light_purple>Chaos-Orb"
+  Mechanics:
+    projectile:
+      trigger: shift_right_click
+      cooldown: 12
+      range: 15
+      speed: 1.0
+      bounces: 3
+      damage: 0.0
+      effects:
+        - type: CONFUSION
+          amplifier: 0
+          duration: 6
+        - type: POISON
+          amplifier: 0
+          duration: 4
+          chance: 0.6
+        - type: SLOW
+          amplifier: 2
+          duration: 3
+          chance: 0.4
+      trail:
+        - particle: SPELL_WITCH
+          count: 3
+          offset: 0.2
+      impact_particles:
+        - particle: SPELL_WITCH
+          count: 30
+      sound_launch: ENTITY_WITCH_THROW
+      sound_impact: ENTITY_WITCH_HURT

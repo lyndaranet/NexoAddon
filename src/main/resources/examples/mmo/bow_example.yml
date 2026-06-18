@@ -1,0 +1,142 @@
+# Höllenbogen — flaming arrows + fireball special
+HOELLENBOGEN:
+  displayname: "<red>Höllenbogen"
+  Mechanics:
+    bow:
+      arrow_passive:
+        fire_ticks: 100
+        damage_multiplier: 1.2
+        hit_fire_duration: 3
+        hit_effects:
+          - type: SLOW
+            amplifier: 0
+            duration: 2
+        hit_particles:
+          - particle: FLAME
+            count: 8
+            offset: 0.1
+        launch_particles:
+          - particle: FLAME
+            count: 10
+            offset: 0.15
+      special_shot:
+        cooldown: 12
+        type: fireball
+        yield: 2.5
+        incendiary: true
+        speed: 1.5
+        special_launch_particles:
+          - particle: FLAME
+            count: 25
+            offset: 0.2
+          - particle: SMOKE_LARGE
+            count: 12
+        special_launch_sound: ENTITY_BLAZE_SHOOT
+
+# Seelenbogen — glowing piercing arrows + homing soul projectile special
+SEELENBOGEN:
+  displayname: "<dark_blue>Seelenbogen"
+  Mechanics:
+    bow:
+      arrow_passive:
+        glowing: true
+        piercing: 2
+        hit_effects:
+          - type: WITHER
+            amplifier: 0
+            duration: 3
+            chance: 0.6
+        hit_particles:
+          - particle: SOUL
+            count: 10
+      special_shot:
+        cooldown: 10
+        type: projectile
+        projectile_config:
+          range: 30
+          speed: 2.0
+          homing: true
+          homing_radius: 10.0
+          homing_strength: 0.1
+          pierce: 1
+          damage: 10.0
+          effects:
+            - type: WITHER
+              amplifier: 1
+              duration: 5
+          trail:
+            - particle: SOUL
+              count: 2
+            - particle: END_ROD
+              count: 1
+          impact_particles:
+            - particle: SOUL
+              count: 30
+        special_launch_particles:
+          - particle: SOUL
+            count: 20
+        special_launch_sound: ENTITY_ENDERMAN_TELEPORT
+
+# Sturmbogen — fast velocity arrows + lightning strike special
+STURMBOGEN:
+  displayname: "<yellow>Sturmbogen"
+  Mechanics:
+    bow:
+      arrow_passive:
+        velocity_multiplier: 1.5
+        critical: true
+        knockback: 2
+        hit_particles:
+          - particle: CRIT
+            count: 12
+      special_shot:
+        cooldown: 8
+        type: lightning
+        range: 40.0
+        damage_lightning: 1.5
+        special_launch_particles:
+          - particle: ENCHANTMENT_TABLE
+            count: 15
+        special_launch_sound: ENTITY_LIGHTNING_BOLT_THUNDER
+
+# Chaosbogen — cluster shot (7 arrows)
+CHAOSBOGEN:
+  displayname: "<light_purple>Chaosbogen"
+  Mechanics:
+    bow:
+      arrow_passive:
+        damage_multiplier: 0.7
+        hit_effects:
+          - type: CONFUSION
+            amplifier: 0
+            duration: 3
+            chance: 0.5
+      special_shot:
+        cooldown: 15
+        type: cluster
+        count: 7
+        spread_angle: 20.0
+        special_launch_particles:
+          - particle: CRIT
+            count: 30
+        special_launch_sound: ENTITY_ARROW_SHOOT
+
+# Sprengbogen — explosive arrow special
+SPRENGBOGEN:
+  displayname: "<gold>Sprengbogen"
+  Mechanics:
+    bow:
+      arrow_passive:
+        hit_explosion_radius: 4.0
+        hit_explosion_damage: 8.0
+        hit_particles:
+          - particle: FLAME
+            count: 6
+      special_shot:
+        cooldown: 10
+        type: explosive_arrow
+        yield: 4.0
+        special_launch_particles:
+          - particle: SMOKE_LARGE
+            count: 15
+        special_launch_sound: ENTITY_GENERIC_EXPLODE

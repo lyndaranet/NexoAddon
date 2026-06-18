@@ -26,9 +26,13 @@ import zone.vao.nexoAddon.items.mechanics.AreaAbilityMechanic;
 import zone.vao.nexoAddon.items.mechanics.AreaMiningMechanic;
 import zone.vao.nexoAddon.items.mechanics.BlockTriggerLaunchMechanic;
 import zone.vao.nexoAddon.items.mechanics.BeamMechanic;
+import zone.vao.nexoAddon.items.mechanics.BowMechanic;
 import zone.vao.nexoAddon.items.mechanics.ConsumableMechanic;
+import zone.vao.nexoAddon.items.mechanics.DashMechanic;
 import zone.vao.nexoAddon.items.mechanics.OnHitMechanic;
 import zone.vao.nexoAddon.items.mechanics.ParticleAuraMechanic;
+import zone.vao.nexoAddon.items.mechanics.ProjectileMechanic;
+import zone.vao.nexoAddon.items.mechanics.ShapeWaveMechanic;
 import zone.vao.nexoAddon.items.mechanics.TeleportMechanic;
 import zone.vao.nexoAddon.items.mechanics.PassiveEffectMechanic;
 
@@ -163,6 +167,10 @@ public class ItemConfigUtil {
                 loadTeleportMechanic(itemSection, mechanic);
                 loadBeamMechanic(itemSection, mechanic);
                 loadParticleAuraMechanic(itemSection, mechanic);
+                loadProjectileMechanic(itemSection, mechanic);
+                loadShapeWaveMechanic(itemSection, mechanic);
+                loadBowMechanic(itemSection, mechanic);
+                loadDashAbilityMechanic(itemSection, mechanic);
                 loadBlockTriggerLaunchMechanic(itemSection, mechanic);
             });
         }
@@ -1227,6 +1235,285 @@ public class ItemConfigUtil {
         if (list.isEmpty()) {
             // Default: single CRIT segment spanning the full beam.
             list.add(new BeamMechanic.BeamSegment(0, 100, Particle.CRIT, 1));
+        }
+        return list;
+    }
+
+    private static void loadProjectileMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.projectile")) {
+            return;
+        }
+        mechanic.setProjectileMechanic(parseProjectile(section, "Mechanics.projectile."));
+    }
+
+    /** Parses a {@link ProjectileMechanic} record from the given config base path. */
+    private static ProjectileMechanic parseProjectile(ConfigurationSection section, String base) {
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        double range = section.getDouble(base + "range", 20.0);
+        double speed = section.getDouble(base + "speed", 1.5);
+        double hitRadius = section.getDouble(base + "hit_radius", 0.5);
+        int maxActive = section.getInt(base + "max_active", 1);
+
+        double gravity = section.getDouble(base + "gravity", 0.0);
+        int bounces = section.getInt(base + "bounces", 0);
+        int pierce = section.getInt(base + "pierce", 0);
+        boolean homing = section.getBoolean(base + "homing", false);
+        double homingRadius = section.getDouble(base + "homing_radius", 8.0);
+        double homingStrength = section.getDouble(base + "homing_strength", 0.08);
+
+        double damage = section.getDouble(base + "damage", 0.0);
+        double knockback = section.getDouble(base + "knockback", 0.0);
+        List<AreaAbilityMechanic.AbilityEffect> effects = parseAbilityEffects(section, base + "effects");
+        List<String> commands = section.getStringList(base + "commands");
+        List<String> blockCommands = section.getStringList(base + "block_commands");
+
+        double explosionRadius = section.getDouble(base + "explosion_radius", 0.0);
+        double explosionDamage = section.getDouble(base + "explosion_damage", 0.0);
+        List<AreaAbilityMechanic.AbilityEffect> explosionEffects =
+            parseAbilityEffects(section, base + "explosion_effects");
+        Particle explosionParticle = resolveParticle(section.getString(base + "explosion_particle"), "projectile");
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+        String requirePermission = section.getString(cond + "require_permission", "");
+        ProjectileMechanic.ProjectileConditions conditions = new ProjectileMechanic.ProjectileConditions(
+            requireSneaking, requireHealthBelow, requirePermission);
+
+        List<ProjectileMechanic.TrailEntry> trail = parseTrailEntries(section, base + "trail");
+        List<TeleportMechanic.ParticleEntry> impactParticles =
+            parseParticleEntries(section, base + "impact_particles");
+        Sound soundLaunch = resolveSound(section.getString(base + "sound_launch"), "projectile");
+        Sound soundImpact = resolveSound(section.getString(base + "sound_impact"), "projectile");
+
+        return new ProjectileMechanic(trigger, cooldownSeconds, range, speed, hitRadius, maxActive, gravity,
+            bounces, pierce, homing, homingRadius, homingStrength, damage, knockback, effects, commands,
+            blockCommands, explosionRadius, explosionDamage, explosionEffects, explosionParticle, conditions,
+            trail, impactParticles, soundLaunch, soundImpact);
+    }
+
+    private static List<ProjectileMechanic.TrailEntry> parseTrailEntries(ConfigurationSection section, String path) {
+        List<ProjectileMechanic.TrailEntry> list = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(path)) {
+            Object particleRaw = entry.get("particle");
+            if (particleRaw == null) {
+                continue;
+            }
+            Particle particle = resolveParticle(String.valueOf(particleRaw), "projectile");
+            if (particle == null) {
+                continue;
+            }
+            int count = (entry.get("count") instanceof Number n) ? n.intValue() : 1;
+            double offset = (entry.get("offset") instanceof Number n) ? n.doubleValue() : 0.0;
+            list.add(new ProjectileMechanic.TrailEntry(particle, count, offset));
+        }
+        return list;
+    }
+
+    private static void loadShapeWaveMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.shape_wave")) {
+            return;
+        }
+
+        String base = "Mechanics.shape_wave.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        String shape = section.getString(base + "shape", "cone").toLowerCase();
+        int maxTargets = section.getInt(base + "max_targets", 0);
+
+        double range = section.getDouble(base + "range", 8.0);
+        double angle = section.getDouble(base + "angle", 30.0);
+        // A line is a very narrow cylinder, so it defaults to a much smaller radius.
+        double defaultRadius = shape.equals("line") ? 0.3 : 3.0;
+        double radius = section.getDouble(base + "radius", defaultRadius);
+        double height = section.getDouble(base + "height", 1.0);
+        double minRadius = section.getDouble(base + "min_radius", 0.0);
+        int rays = section.getInt(base + "rays", 3);
+        double arcDegrees = section.getDouble(base + "arc_degrees", 90.0);
+
+        double damage = section.getDouble(base + "damage", 0.0);
+        int fireDurationSeconds = section.getInt(base + "fire_duration", 0);
+        double knockback = section.getDouble(base + "knockback", 0.0);
+        List<AreaAbilityMechanic.AbilityEffect> effects = parseAbilityEffects(section, base + "effects");
+        List<String> commands = section.getStringList(base + "commands");
+
+        List<AreaAbilityMechanic.AbilityEffect> selfEffects = parseAbilityEffects(section, base + "self_effects");
+        double selfDamage = section.getDouble(base + "self_damage", 0.0);
+        double selfHeal = section.getDouble(base + "self_heal", 0.0);
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+        String requirePermission = section.getString(cond + "require_permission", "");
+        int minTargetsRequired = section.getInt(cond + "min_targets_required", 0);
+        ShapeWaveMechanic.ShapeConditions conditions = new ShapeWaveMechanic.ShapeConditions(
+            requireSneaking, requireHealthBelow, requirePermission, minTargetsRequired);
+
+        double particleDensity = section.getDouble(base + "particle_density", 3.0);
+        boolean animate = section.getBoolean(base + "animate", false);
+        int animateTicks = section.getInt(base + "animate_ticks", 6);
+        List<ProjectileMechanic.TrailEntry> fillParticles = parseTrailEntries(section, base + "fill_particles");
+        Sound sound = resolveSound(section.getString(base + "sound"), "shape_wave");
+        Sound soundHit = resolveSound(section.getString(base + "sound_hit"), "shape_wave");
+
+        mechanic.setShapeWaveMechanic(trigger, cooldownSeconds, shape, maxTargets, range, angle, radius, height,
+            minRadius, rays, arcDegrees, damage, fireDurationSeconds, knockback, effects, commands, selfEffects,
+            selfDamage, selfHeal, conditions, particleDensity, animate, animateTicks, fillParticles, sound,
+            soundHit);
+    }
+
+    private static void loadBowMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.bow")) {
+            return;
+        }
+
+        String base = "Mechanics.bow.";
+
+        BowMechanic.ArrowPassive arrowPassive = null;
+        if (section.contains(base + "arrow_passive")) {
+            String ap = base + "arrow_passive.";
+            int fireTicks = section.getInt(ap + "fire_ticks", 0);
+            double damageMultiplier = section.getDouble(ap + "damage_multiplier", 1.0);
+            double velocityMultiplier = section.getDouble(ap + "velocity_multiplier", 1.0);
+            int knockback = section.getInt(ap + "knockback", 0);
+            int piercing = section.getInt(ap + "piercing", 0);
+            boolean critical = section.getBoolean(ap + "critical", false);
+            boolean glowing = section.getBoolean(ap + "glowing", false);
+            List<AreaAbilityMechanic.AbilityEffect> hitEffects = parseAbilityEffects(section, ap + "hit_effects");
+            double hitDamageBonus = section.getDouble(ap + "hit_damage_bonus", 0.0);
+            int hitFireDuration = section.getInt(ap + "hit_fire_duration", 0);
+            double hitExplosionRadius = section.getDouble(ap + "hit_explosion_radius", 0.0);
+            double hitExplosionDamage = section.getDouble(ap + "hit_explosion_damage", 0.0);
+            List<String> hitCommands = section.getStringList(ap + "hit_commands");
+            List<ProjectileMechanic.TrailEntry> hitParticles = parseTrailEntries(section, ap + "hit_particles");
+            Sound hitSound = resolveSound(section.getString(ap + "hit_sound"), "bow");
+            List<ProjectileMechanic.TrailEntry> launchParticles = parseTrailEntries(section, ap + "launch_particles");
+            Sound launchSound = resolveSound(section.getString(ap + "launch_sound"), "bow");
+
+            arrowPassive = new BowMechanic.ArrowPassive(fireTicks, damageMultiplier, velocityMultiplier, knockback,
+                piercing, critical, glowing, hitEffects, hitDamageBonus, hitFireDuration, hitExplosionRadius,
+                hitExplosionDamage, hitCommands, hitParticles, hitSound, launchParticles, launchSound);
+        }
+
+        BowMechanic.SpecialShot specialShot = null;
+        if (section.contains(base + "special_shot")) {
+            String ss = base + "special_shot.";
+            int cooldownSeconds = section.getInt(ss + "cooldown", 0);
+            String type = section.getString(ss + "type", "fireball").toLowerCase();
+            double yield = section.getDouble(ss + "yield", 2.0);
+            boolean incendiary = section.getBoolean(ss + "incendiary", false);
+            double speed = section.getDouble(ss + "speed", 1.5);
+            double range = section.getDouble(ss + "range", 30.0);
+            double damageLightning = section.getDouble(ss + "damage_lightning", 1.0);
+            int count = section.getInt(ss + "count", 5);
+            double spreadAngle = section.getDouble(ss + "spread_angle", 15.0);
+
+            ProjectileMechanic projectileConfig = null;
+            if (section.contains(ss + "projectile_config")) {
+                projectileConfig = parseProjectile(section, ss + "projectile_config.");
+            }
+
+            String cond = ss + "conditions.";
+            String requirePermission = section.getString(cond + "require_permission", "");
+            boolean requireArrows = section.getBoolean(cond + "require_arrows", false);
+            int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+            BowMechanic.SpecialConditions conditions =
+                new BowMechanic.SpecialConditions(requirePermission, requireArrows, requireHealthBelow);
+
+            List<ProjectileMechanic.TrailEntry> launchParticles =
+                parseTrailEntries(section, ss + "special_launch_particles");
+            Sound launchSound = resolveSound(section.getString(ss + "special_launch_sound"), "bow");
+            String cooldownMessage = section.getString(ss + "special_cooldown_message",
+                "<red>Noch <bold>{remaining}s</bold> Cooldown!");
+
+            specialShot = new BowMechanic.SpecialShot(cooldownSeconds, type, yield, incendiary, speed, range,
+                damageLightning, count, spreadAngle, projectileConfig, conditions, launchParticles, launchSound,
+                cooldownMessage);
+        }
+
+        if (arrowPassive == null && specialShot == null) {
+            return;
+        }
+        mechanic.setBowMechanic(new BowMechanic(arrowPassive, specialShot));
+    }
+
+    /**
+     * Loads the MMO-style {@link DashMechanic}. Keyed on {@code Mechanics.dash.mode} so it does not
+     * collide with the legacy {@code Mechanics.dash.power} mechanic ({@link #loadDashMechanic}).
+     */
+    private static void loadDashAbilityMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.dash.mode")) {
+            return;
+        }
+
+        String base = "Mechanics.dash.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        String mode = section.getString(base + "mode", "flight").toLowerCase();
+        String direction = section.getString(base + "direction", "look").toLowerCase();
+        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int durationTicks = section.getInt(base + "duration", 40);
+        double speed = section.getDouble(base + "speed", 2.5);
+
+        int charges = Math.max(1, section.getInt(base + "charges", 1));
+        int chargeRechargeSeconds = section.getInt(base + "charge_recharge_seconds", 8);
+
+        List<DashMechanic.PhaseEffect> phaseEffects = parsePhaseEffects(section, base + "phase_effects");
+        int phaseInvincibilityTicks = section.getInt(base + "phase_invincibility_ticks", 0);
+        boolean glowDuringDash = section.getBoolean(base + "glow_during_dash", false);
+
+        List<ProjectileMechanic.TrailEntry> phaseParticles = parseTrailEntries(section, base + "phase_particles");
+        int trailIntervalTicks = section.getInt(base + "trail_interval_ticks", 1);
+
+        List<AreaAbilityMechanic.AbilityEffect> activateEffects =
+            parseAbilityEffects(section, base + "activate_effects");
+        double activateSelfDamage = section.getDouble(base + "activate_self_damage", 0.0);
+
+        double impactRadius = section.getDouble(base + "impact_radius", 0.0);
+        double impactDamage = section.getDouble(base + "impact_damage", 0.0);
+        int impactDelayTicks = section.getInt(base + "impact_delay_ticks", 10);
+        List<AreaAbilityMechanic.AbilityEffect> impactEffects =
+            parseAbilityEffects(section, base + "impact_effects");
+        List<TeleportMechanic.ParticleEntry> impactParticles =
+            parseParticleEntries(section, base + "impact_particles");
+        Sound impactSound = resolveSound(section.getString(base + "impact_sound"), "dash");
+
+        String cond = base + "conditions.";
+        boolean requireSneaking = section.getBoolean(cond + "require_sneaking", false);
+        boolean requireSprinting = section.getBoolean(cond + "require_sprinting", false);
+        int requireHealthBelow = section.getInt(cond + "require_health_below", 100);
+        String requirePermission = section.getString(cond + "require_permission", "");
+        boolean requireOnGround = section.getBoolean(cond + "require_on_ground", false);
+        boolean requireInAir = section.getBoolean(cond + "require_in_air", false);
+        DashMechanic.DashConditions conditions = new DashMechanic.DashConditions(requireSneaking, requireSprinting,
+            requireHealthBelow, requirePermission, requireOnGround, requireInAir);
+
+        List<ProjectileMechanic.TrailEntry> activateParticles =
+            parseTrailEntries(section, base + "activate_particles");
+        Sound activateSound = resolveSound(section.getString(base + "activate_sound"), "dash");
+
+        mechanic.setDashMechanic(new DashMechanic(trigger, mode, direction, cooldownSeconds, durationTicks, speed,
+            charges, chargeRechargeSeconds, phaseEffects, phaseInvincibilityTicks, glowDuringDash, phaseParticles,
+            trailIntervalTicks, activateEffects, activateSelfDamage, impactRadius, impactDamage, impactDelayTicks,
+            impactEffects, impactParticles, impactSound, conditions, activateParticles, activateSound));
+    }
+
+    /** Parses a phase-effect list whose durations are given in ticks (key {@code duration_ticks}). */
+    private static List<DashMechanic.PhaseEffect> parsePhaseEffects(ConfigurationSection section, String path) {
+        List<DashMechanic.PhaseEffect> list = new ArrayList<>();
+        for (Map<?, ?> entry : section.getMapList(path)) {
+            Object typeRaw = entry.get("type");
+            if (typeRaw == null) {
+                continue;
+            }
+            PotionEffectType type = resolvePotionEffectType(String.valueOf(typeRaw));
+            if (type == null) {
+                NexoAddon.getInstance().getLogger().warning("Invalid PotionEffectType for dash: " + typeRaw);
+                continue;
+            }
+            int amplifier = (entry.get("amplifier") instanceof Number n) ? n.intValue() : 0;
+            int durationTicks = (entry.get("duration_ticks") instanceof Number n) ? n.intValue() : 20;
+            list.add(new DashMechanic.PhaseEffect(type, amplifier, durationTicks));
         }
         return list;
     }
