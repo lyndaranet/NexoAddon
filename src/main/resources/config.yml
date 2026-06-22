@@ -26,3 +26,5 @@ messages:
   widehoe:
     enabled: <green>WideHoe on
     disabled: <red>WideHoe off
+
+debug: false

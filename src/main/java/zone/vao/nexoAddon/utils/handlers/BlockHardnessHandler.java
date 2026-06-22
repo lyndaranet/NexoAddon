@@ -87,8 +87,8 @@ public class BlockHardnessHandler implements PacketListener {
             return;
         }
 
-        int hardness = bedrockBreak.hardness();
-        double probability = bedrockBreak.probability();
+    int hardness = bedrockBreak.hardness();
+    double probability = bedrockBreak.probability();
 
         BukkitScheduler scheduler = Bukkit.getScheduler();
         breakingTasks.put(location, scheduler.runTaskTimer(NexoAddon.getInstance(), new Runnable() {
@@ -110,15 +110,13 @@ public class BlockHardnessHandler implements PacketListener {
                     sendBlockBreakAnimation(location, newStage, digging);
                 }
 
-                if (progress >= hardness) {
-                    stopBreaking(location, digging);
-                    if (EventUtil.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player,
-                        location)) {
-                        Bukkit.getScheduler().runTask(NexoAddon.getInstance(), () -> {
-                            if (Math.random() <= probability) {
-                                block.getWorld().dropItemNaturally(location, new ItemStack(Material.BEDROCK));
-                            }
-                            block.breakNaturally();
+        if (progress >= hardness) {
+          stopBreaking(location, digging);
+          if (EventUtil.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, location)) {
+            Bukkit.getScheduler().runTask(NexoAddon.getInstance(), () -> {
+              if(Math.random() <= probability)
+                block.getWorld().dropItemNaturally(location, new ItemStack(Material.BEDROCK));
+              block.breakNaturally();
 
                             if (tool.getItemMeta() instanceof Damageable damageable) {
                                 damageable.setDamage(damageable.getDamage() + bedrockBreak.durabilityCost());
@@ -166,12 +164,12 @@ public class BlockHardnessHandler implements PacketListener {
         WrapperPlayServerBlockBreakAnimation newDigging = new WrapperPlayServerBlockBreakAnimation(location.hashCode(),
             digging.getBlockPosition(), (byte) stage);
 
-        for (Player player : location.getWorld().getPlayers()) {
-            try {
-                PacketEvents.getAPI().getPlayerManager().sendPacket(player, newDigging);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    for (Player player : location.getWorld().getPlayers()) {
+      try {
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, newDigging);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
+  }
 }

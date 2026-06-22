@@ -47,6 +47,8 @@ import zone.vao.nexoAddon.utils.handlers.ParticleEffectManager;
 import zone.vao.nexoAddon.utils.handlers.RecipeManager;
 import zone.vao.nexoAddon.utils.hooks.PacketEventsHook;
 import zone.vao.nexoAddon.utils.metrics.Metrics;
+import zone.vao.thirdparties.updatechecker.UpdateCheckSource;
+import zone.vao.thirdparties.updatechecker.UpdateChecker;
 
 import java.io.File;
 import java.util.*;
@@ -54,6 +56,30 @@ import java.util.*;
 @Getter
 public final class NexoAddon extends JavaPlugin {
 
+  @Getter
+  public static NexoAddon instance;
+  public static boolean isDebug = false;
+  public Set<File> nexoFiles = new HashSet<>();
+  public Map<String, Components> components = new HashMap<>();
+  public Map<String, Mechanics> mechanics = new HashMap<>();
+  private Map<String, ItemStack> skulls = new HashMap<>();
+  public Map<UUID, BossBarUtil> bossBars = new HashMap<>();
+  public FileConfiguration globalConfig;
+  public PopulatorsConfigUtil populatorsConfig;
+  public List<Ore> ores = new ArrayList<>();
+  public final OrePopulator orePopulator = new OrePopulator();
+  public Map<String, List<CustomOrePopulator>> worldPopulators = new HashMap<>();
+  public Map<String, String> jukeboxLocations = new HashMap<>();
+  public Map<String, Integer> customBlockLights = new HashMap<>();
+  public BlockHardnessHandler blockHardnessHandler;
+  public PacketListenerCommon packetListenerCommon;
+  public FoliaLib foliaLib;
+  private boolean packeteventsLoaded = false;
+  private boolean mythicMobsLoaded = false;
+  private ParticleEffectManager particleEffectManager;
+  private final Map<Location, WrappedTask> particleTasks = new HashMap<>();
+  @Setter
+  private Boolean isDecay = false;
     // TODO: Shrink and grow mechanics
     // TODO: Insta Obsidian mechanic
     // TODO: Infinite water bucket mechanic / lava bucket / ender pearl
@@ -96,6 +122,20 @@ public final class NexoAddon extends JavaPlugin {
         }
     }
 
+  @Override
+  public void onEnable() {
+    foliaLib = new FoliaLib(this);
+    ProtectionLib.init(this);
+    saveDefaultConfig();
+    globalConfig = getConfig();
+    isDebug = globalConfig.getBoolean("debug", false);
+    foliaLib = new FoliaLib(this);
+    initializeCommandManager();
+    if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null &&
+        Bukkit.getPluginManager().getPlugin("MythicMobs").isEnabled())
+    {
+      mythicMobsLoaded = true;
+    }
     @Override
     public void onEnable() {
         foliaLib = new FoliaLib(this);
@@ -146,6 +186,24 @@ public final class NexoAddon extends JavaPlugin {
         return new CustomChunkGenerator(orePopulator);
     }
 
+  public void reload() {
+    reloadConfig();
+    globalConfig = getConfig();
+    isDebug = globalConfig.getBoolean("debug", false);
+    foliaLib.getScheduler().runNextTick(init -> {
+      clearPopulators();
+      initializePopulators();
+    });
+    reloadNexoFiles();
+    loadComponentsIfSupported();
+    bossBars.values().forEach(BossBarUtil::removeBar);
+    RecipeManager.clearRegisteredRecipes();
+    RecipesUtil.loadRecipes();
+    SkullUtil.applyTextures();
+    particleEffectManager.stopAuraEffectTask();
+    foliaLib.getScheduler().runLater(() -> {
+      particleEffectManager.startAuraEffectTask();
+    }, 2L);
     public void reload() {
         reloadConfig();
         globalConfig = getConfig();
@@ -177,6 +235,18 @@ public final class NexoAddon extends JavaPlugin {
         PaperCommandManager manager = new PaperCommandManager(this);
         manager.registerCommand(new NexoAddonCommand());
 
+    manager.getCommandCompletions().registerCompletion("nexoItems", c -> {
+      Set<String> itemNames = NexoItems.itemNames();
+      return new ArrayList<>(itemNames);
+    });
+
+    manager.getCommandCompletions().registerCompletion("sounds", c -> {
+
+      return Registry.SOUNDS.keyStream()
+          .map(NamespacedKey::toString)
+          .toList();
+    });
+  }
         manager.getCommandCompletions().registerCompletion("nexoItems", c -> {
             Set<String> itemNames = NexoItems.itemNames();
             return new ArrayList<>(itemNames);

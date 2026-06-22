@@ -1,6 +1,12 @@
 package zone.vao.nexoAddon.utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VersionUtil {
 
@@ -10,30 +16,52 @@ public class VersionUtil {
   }
 
   public static boolean nexoVersionLessThan(String targetVersion) {
-    String version = Bukkit.getPluginManager().getPlugin("Nexo").getDescription().getVersion();
+    Plugin nexo = Bukkit.getPluginManager().getPlugin("Nexo");
+
+    if (nexo == null || nexo.getDescription() == null) {
+      return false;
+    }
+
+    String version = nexo.getDescription().getVersion();
     return checkVersion(targetVersion, version);
   }
 
   private static boolean checkVersion(String targetVersion, String version) {
-    String[] versionParts = version.split("-")[0].split("\\.");
-    String[] targetVersionParts = targetVersion.split("\\.");
+    List<Integer> currentVersionNumbers = extractVersionNumbers(version);
+    List<Integer> targetVersionNumbers = extractVersionNumbers(targetVersion);
 
-    int length = Math.max(versionParts.length, targetVersionParts.length);
-    int[] currentVersionNumbers = new int[length];
-    int[] targetVersionNumbers = new int[length];
+    int length = Math.max(currentVersionNumbers.size(), targetVersionNumbers.size());
 
     for (int i = 0; i < length; i++) {
-      currentVersionNumbers[i] = (i < versionParts.length) ? Integer.parseInt(versionParts[i]) : 0;
-      targetVersionNumbers[i] = (i < targetVersionParts.length) ? Integer.parseInt(targetVersionParts[i]) : 0;
-    }
+      int current = i < currentVersionNumbers.size() ? currentVersionNumbers.get(i) : 0;
+      int target = i < targetVersionNumbers.size() ? targetVersionNumbers.get(i) : 0;
 
-    for (int i = 0; i < length; i++) {
-      if (currentVersionNumbers[i] < targetVersionNumbers[i]) {
+      if (current < target) {
         return true;
-      } else if (currentVersionNumbers[i] > targetVersionNumbers[i]) {
+      } else if (current > target) {
         return false;
       }
     }
+
     return false;
+  }
+
+  private static List<Integer> extractVersionNumbers(String version) {
+    List<Integer> numbers = new ArrayList<>();
+
+    if (version == null || version.isBlank()) {
+      return numbers;
+    }
+
+    String cleanVersion = version.split(" ")[0];
+    cleanVersion = cleanVersion.split("-")[0];
+
+    Matcher matcher = Pattern.compile("\\d+").matcher(cleanVersion);
+
+    while (matcher.find()) {
+      numbers.add(Integer.parseInt(matcher.group()));
+    }
+
+    return numbers;
   }
 }

@@ -4,9 +4,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import zone.vao.nexoAddon.NexoAddon;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 public class HologramUtil {
 
-  private static final Map<UUID, ArmorStand> holograms = new HashMap<>();
+  private static final Map<UUID, TextDisplay> holograms = new HashMap<>();
 
   public static void displayProgressBar(Entity entity, double progress, Player player) {
     if (entity == null || progress < 0.0 || progress > 1.0) return;
@@ -29,21 +30,20 @@ public class HologramUtil {
 
       NexoAddon.getInstance().foliaLib.getScheduler().runNextTick(nextTick -> {
         if (player != null && holograms.containsKey(player.getUniqueId())) {
-          ArmorStand existingHologram = holograms.get(player.getUniqueId());
+          TextDisplay existingHologram = holograms.get(player.getUniqueId());
           existingHologram.remove();
           holograms.remove(player.getUniqueId());
         }
 
-        ArmorStand hologram = world.spawn(hologramLocation, ArmorStand.class, stand -> {
-          stand.customName(progressBar);
-          stand.setCustomNameVisible(true);
-          stand.setGravity(false);
-          stand.setInvisible(true);
-          stand.setMarker(true);
-          stand.setSmall(true);
+        TextDisplay hologram = world.spawn(hologramLocation, TextDisplay.class, holo -> {
+          holo.customName(progressBar);
+          holo.setCustomNameVisible(true);
+          holo.setGravity(false);
+          holo.setInvisible(true);
+          holo.setBillboard(Display.Billboard.CENTER);
           if (player != null) {
-            stand.setVisibleByDefault(false);
-            player.showEntity(NexoAddon.getInstance(), stand);
+            holo.setVisibleByDefault(false);
+            player.showEntity(NexoAddon.getInstance(), holo);
           }
         });
 

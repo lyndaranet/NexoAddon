@@ -3,6 +3,7 @@ package zone.vao.nexoAddon.utils;
 import com.nexomc.nexo.api.NexoItems;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -225,7 +226,27 @@ public class ItemConfigUtil {
                     materials.add(material);
                 }
             }
+  private static void loadBigMiningMechanic(ConfigurationSection section, Mechanics mechanic) {
+    if (section.contains("Mechanics.bigmining.radius") && section.contains("Mechanics.bigmining.depth")) {
+      int radius = section.getInt("Mechanics.bigmining.radius", 1);
+      int depth = section.getInt("Mechanics.bigmining.depth", 1);
+      boolean switchable = section.getBoolean("Mechanics.bigmining.switchable", false);
+      String soundRaw = section.getString("Mechanics.bigmining.sound", "block.stone.break");
+      List<Material> materials = new ArrayList<>();
+      for (String s : section.getStringList("Mechanics.bigmining.materials")) {
+        Material material = Material.matchMaterial(s);
+        if(material != null) materials.add(material);
+      }
 
+            Sound sound = Registry.SOUNDS.get(soundRaw.contains(":") ? NamespacedKey.fromString(soundRaw) : NamespacedKey.minecraft(soundRaw));
+
+
+            mechanic.setBigMining(radius, depth, switchable, materials);
+      Sound sound = Registry.SOUNDS.get(soundRaw.contains(":") ? NamespacedKey.fromString(soundRaw) : NamespacedKey.minecraft(soundRaw));
+
+      mechanic.setBigMining(radius, depth, switchable, materials, sound);
+    }
+  }
             mechanic.setBigMining(radius, depth, switchable, materials);
         }
     }
@@ -253,6 +274,17 @@ public class ItemConfigUtil {
         }
     }
 
+  private static void loadBedrockBreakMechanic(ConfigurationSection section, Mechanics mechanic) {
+    if (section.contains("Mechanics.bedrockbreak.hardness") && section.contains("Mechanics.bedrockbreak.probability")) {
+      int hardness = section.getInt("Mechanics.bedrockbreak.hardness");
+      double probability = section.getDouble("Mechanics.bedrockbreak.probability");
+      int durabilityCost = section.getInt("Mechanics.bedrockbreak.durability_cost", 1);
+      boolean disableOnFirstLayer = section.getBoolean("Mechanics.bedrockbreak.disable_on_first_layer", true);
+      String soundRaw = section.getString("Mechanics.bedrockbreak.sound", "block.stone.break");
+      Sound sound = Registry.SOUNDS.get(soundRaw.contains(":") ? NamespacedKey.fromString(soundRaw) : NamespacedKey.minecraft(soundRaw));
+      mechanic.setBedrockBreak(hardness, probability, durabilityCost, disableOnFirstLayer, sound);
+    }
+  }
     private static void loadTimberMechanic(ConfigurationSection section, Mechanics mechanic) {
         if (section.contains("Mechanics.timber.limit")) {
             int limit = section.getInt("Mechanics.timber.limit", 100);
