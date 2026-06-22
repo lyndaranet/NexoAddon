@@ -1,0 +1,163 @@
+# Feuerfackel — flame helix + enchantment ring, offhand
+FEUERFACKEL:
+  displayname: "<red>Feuerfackel"
+  Mechanics:
+    particle_aura:
+      slot: offhand
+      interval_ticks: 2
+      layers:
+        - shape: helix
+          particle: FLAME
+          radius: 1.2
+          count: 2
+          rotation_speed: 0.18
+          height: 2.0
+        - shape: ring
+          particle: ENCHANTMENT_TABLE
+          radius: 1.0
+          count: 3
+          rotation_speed: -0.12
+          y_offset: 0.5
+
+# Eisfackel — sphere of snow + orbit of end rods
+EISFACKEL:
+  displayname: "<aqua>Eisfackel"
+  Mechanics:
+    particle_aura:
+      slot: offhand
+      interval_ticks: 3
+      layers:
+        - shape: sphere
+          particle: SNOW_SHOVEL
+          radius: 1.4
+          count: 4
+          rotation_speed: 0.08
+        - shape: orbit
+          particle: END_ROD
+          radius: 1.6
+          count: 2
+          orb_count: 3
+          rotation_speed: 0.2
+          y_offset: 1.0
+
+# Sturmfackel — tornado vortex, gets denser while sprinting
+STURMFACKEL:
+  displayname: "<gray>Sturmfackel"
+  Mechanics:
+    particle_aura:
+      slot: offhand
+      interval_ticks: 1
+      layers:
+        - shape: tornado
+          particle: CLOUD
+          radius: 1.3
+          count: 3
+          rotation_speed: 0.25
+          height: 2.2
+          count_sprint_multiplier: 2.5
+        - shape: ring
+          particle: SPELL_MOB
+          radius: 0.8
+          count: 2
+          rotation_speed: 0.1
+          y_offset: -0.2
+          only_on_sprint: true
+
+# Seelenfackel — damage burst layer + passive random particles
+SEELENFACKEL:
+  displayname: "<dark_purple>Seelenfackel"
+  Mechanics:
+    particle_aura:
+      slot: offhand
+      interval_ticks: 4
+      layers:
+        - shape: random
+          particle: SPELL_WITCH
+          radius: 1.5
+          count: 5
+        - shape: sphere
+          particle: SOUL
+          radius: 2.0
+          count: 8
+          rotation_speed: 0.05
+          only_on_damage: true
+
+# Kriegerschulter — armor_chest aura, only active while sprinting
+KRIEGERSCHULTER:
+  displayname: "<gold>Kriegerschulter"
+  Mechanics:
+    particle_aura:
+      slot: armor_chest
+      interval_ticks: 2
+      conditions:
+        require_sprinting: true
+      layers:
+        - shape: helix
+          particle: CRIT
+          radius: 1.0
+          count: 2
+          rotation_speed: 0.2
+          height: 2.0
+
+# Seelensog — spiraling vortex funnel (uses wiki name "soul_fire_flame")
+SEELENSOG:
+  displayname: "<dark_purple>Seelensog"
+  Mechanics:
+    particle_aura:
+      slot: mainhand
+      interval_ticks: 1
+      layers:
+        - shape: vortex
+          particle: soul_fire_flame   # Minecraft wiki name — also accepted: SOUL_FIRE_FLAME
+          radius: 1.8
+          count: 4
+          rotation_speed: 0.3
+          height: 2.5
+          orb_count: 3               # number of spiral arms
+        - shape: ring
+          particle: SOUL
+          radius: 0.4
+          count: 8
+          rotation_speed: -0.15
+          y_offset: 0.2
+
+# Rote Fackel — dust particle with explicit color (REDSTONE requires dust_color)
+cosmetic_redstonefackel:
+  displayname: "<red>Rote Fackel des Schicksals"
+  Mechanics:
+    particle_aura:
+      slot: offhand
+      interval_ticks: 2
+      layers:
+        - shape: vortex
+          particle: dust              # Minecraft wiki: "dust" = Bukkit REDSTONE
+          dust_color: "#FF2200"       # required for dust particles — hex or name (RED, ORANGE, …)
+          dust_size: 1.2
+          radius: 2.0
+          count: 8
+          rotation_speed: 0.05
+          height: 0.25
+
+# Engelsschwingen — flapping particle wings
+Engelsschwingen:
+  itemname: <blue>Engelsschwingen
+  material: SOUL_TORCH
+  Mechanics:
+    particle_aura:
+      slot: OFF_HAND
+      interval_ticks: 2
+      layers:
+        - shape: wings
+          particle: FLAME
+          radius: 1.6
+          height: 1.3
+          count: 1
+          rotation_speed: 0.08
+          y_offset: 0.1
+        - shape: wings
+          particle: FLAME
+          radius: 1.2
+          height: 1.0
+          count: 1
+          rotation_speed: 0.08
+          y_offset: -0.1

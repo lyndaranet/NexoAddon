@@ -1,0 +1,28 @@
+# Example: Venomous Dagger — poisons and slows on hit
+VENOMOUS_DAGGER:
+  displayname: "<red>Venomous Dagger"
+  Mechanics:
+    on_hit:
+      cooldown: 8
+      particles: VILLAGER_ANGRY
+      effects:
+        - type: POISON
+          amplifier: 1
+          duration: 3
+        - type: SLOWNESS
+          amplifier: 0
+          duration: 2
+
+# Example: Frost Blade — slows and weakens on hit, no particles
+FROST_BLADE:
+  displayname: "<aqua>Frost Blade"
+  Mechanics:
+    on_hit:
+      cooldown: 5
+      effects:
+        - type: SLOWNESS
+          amplifier: 1
+          duration: 4
+        - type: WEAKNESS
+          amplifier: 0
+          duration: 3

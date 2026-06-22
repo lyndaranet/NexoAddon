@@ -1,0 +1,85 @@
+# Teleportstab — classic blink in look direction
+TELEPORTSTAB:
+  displayname: "<light_purple>Teleportstab"
+  Mechanics:
+    teleport:
+      trigger: right_click
+      mode: look_direction
+      cooldown: 6
+      distance: 15
+      origin_particles:
+        - particle: PORTAL
+          count: 30
+        - particle: END_ROD
+          count: 10
+      destination_particles:
+        - particle: PORTAL
+          count: 30
+        - particle: END_ROD
+          count: 10
+      sound_origin: ENTITY_ENDERMAN_TELEPORT
+      sound_destination: ENTITY_ENDERMAN_TELEPORT
+
+# Assassin Blade — teleport behind target on hit, brief invisibility
+ASSASSIN_BLADE:
+  displayname: "<dark_gray>Assassinen-Klinge"
+  Mechanics:
+    teleport:
+      trigger: on_hit
+      mode: to_target
+      behind_target: true
+      cooldown: 8
+      distance: 10
+      effects:
+        - type: INVISIBILITY
+          amplifier: 0
+          duration: 2
+        - type: SPEED
+          amplifier: 1
+          duration: 3
+      conditions:
+        require_line_of_sight: true
+      origin_particles:
+        - particle: SMOKE_NORMAL
+          count: 20
+      destination_particles:
+        - particle: SMOKE_NORMAL
+          count: 20
+      trail_particle: SMOKE_NORMAL
+      sound_origin: ENTITY_ENDERMAN_TELEPORT
+      sound_destination: ITEM_ARMOR_EQUIP_LEATHER
+
+# Gravity Hammer — land with shockwave damage
+GRAVITY_HAMMER:
+  displayname: "<gray>Gravitationshammer"
+  Mechanics:
+    teleport:
+      trigger: shift_right_click
+      mode: upward
+      cooldown: 12
+      distance: 20
+      arrive_damage_radius: 4.0
+      arrive_damage: 6.0
+      conditions:
+        require_sneaking: true
+      origin_particles:
+        - particle: CLOUD
+          count: 25
+      destination_particles:
+        - particle: EXPLOSION_NORMAL
+          count: 40
+      sound_origin: ENTITY_PLAYER_ATTACK_SWEEP
+      sound_destination: ENTITY_GENERIC_EXPLODE
+
+# Chaos Scroll — random teleport within 20 blocks
+CHAOS_SCROLL:
+  displayname: "<dark_purple>Chaosrolle"
+  Mechanics:
+    teleport:
+      trigger: right_click
+      mode: random
+      cooldown: 3
+      distance: 20
+      trail_particle: ENCHANTMENT_TABLE
+      sound_origin: ENTITY_ENDERMAN_TELEPORT
+      sound_destination: ENTITY_ENDERMAN_TELEPORT

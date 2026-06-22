@@ -1,0 +1,101 @@
+# Windpeitsche I — white crit beam, pierce, no knockback
+WINDPEITSCHE_1:
+  displayname: "<white>Windpeitsche I"
+  Mechanics:
+    beam:
+      trigger: right_click
+      cooldown: 4
+      range: 10
+      damage: 5.0
+      pierce: true
+      beam_segments:
+        - from_pct: 0
+          to_pct: 100
+          particle: CRIT
+          count: 1
+      hit_particle: CRIT_MAGIC
+      sound: ENTITY_ARROW_SHOOT
+      sound_hit: ENTITY_PLAYER_HURT
+
+# Windpeitsche IV — long range, gradient beam (white → enchantment), knockback
+WINDPEITSCHE_4:
+  displayname: "<aqua>Windpeitsche IV"
+  Mechanics:
+    beam:
+      trigger: right_click
+      cooldown: 7
+      range: 18
+      damage: 9.0
+      knockback: 0.8
+      pierce: true
+      beam_segments:
+        - from_pct: 0
+          to_pct: 50
+          particle: CRIT
+          count: 1
+        - from_pct: 50
+          to_pct: 100
+          particle: ENCHANTMENT_TABLE
+          count: 1
+      hit_particle: EXPLOSION_NORMAL
+      sound: ENTITY_ARROW_SHOOT
+      sound_hit: ENTITY_GENERIC_HURT
+
+# Flammenstrahl — pierces blocks, Burning + Slowness, no pierce on entities (stop at first)
+FLAMMENSTRAHL:
+  displayname: "<red>Flammenstrahl"
+  Mechanics:
+    beam:
+      trigger: shift_right_click
+      cooldown: 10
+      range: 12
+      width: 0.6
+      pierce: false
+      pierce_blocks: true
+      damage: 4.0
+      effects:
+        - type: FIRE_RESISTANCE
+          amplifier: 0
+          duration: 3
+          chance: 1.0
+        - type: SLOW
+          amplifier: 1
+          duration: 2
+          chance: 0.75
+      beam_segments:
+        - from_pct: 0
+          to_pct: 60
+          particle: FLAME
+          count: 2
+        - from_pct: 60
+          to_pct: 100
+          particle: SMOKE_NORMAL
+          count: 1
+      hit_particle: LAVA
+      sound: ITEM_FLINTANDSTEEL_USE
+      sound_hit: ENTITY_BLAZE_HURT
+
+# Eissplitter — narrow precision beam, Slowness II, stops at first entity
+EISSPLITTER:
+  displayname: "<aqua>Eissplitter"
+  Mechanics:
+    beam:
+      trigger: right_click
+      cooldown: 2
+      range: 20
+      width: 0.2
+      height: 0.2
+      pierce: false
+      damage: 3.0
+      effects:
+        - type: SLOW
+          amplifier: 1
+          duration: 3
+      beam_segments:
+        - from_pct: 0
+          to_pct: 100
+          particle: SNOW_SHOVEL
+          count: 2
+      hit_particle: SNOWBALL
+      sound: ENTITY_ARROW_SHOOT
+      sound_hit: BLOCK_GLASS_BREAK

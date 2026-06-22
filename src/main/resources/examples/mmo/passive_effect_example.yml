@@ -1,0 +1,56 @@
+# Classic Talisman — Speed II + Regen I while in offhand
+SPEED_TALISMAN:
+  displayname: "<yellow>Speed Talisman"
+  Mechanics:
+    passive_effect:
+      slot: offhand
+      reapply_ticks: 40
+      potion_effects:
+        - type: SPEED
+          amplifier: 1
+        - type: REGENERATION
+          amplifier: 0
+      ambient_particle: SPELL_MOB
+      activate_sound: BLOCK_ENCHANTMENT_TABLE_USE
+
+# Berserker Ring — Strength II + Speed I, only while sprinting
+BERSERKER_RING:
+  displayname: "<red>Berserker Ring"
+  Mechanics:
+    passive_effect:
+      slot: any
+      reapply_ticks: 20
+      potion_effects:
+        - type: INCREASE_DAMAGE
+          amplifier: 1
+        - type: SPEED
+          amplifier: 0
+      conditions:
+        on_sprint: true
+
+# Guardian Chestplate — extra max health via attribute, always on
+GUARDIAN_CHESTPLATE:
+  displayname: "<aqua>Guardian Chestplate"
+  Mechanics:
+    passive_effect:
+      slot: armor_chest
+      reapply_ticks: 60
+      attribute_modifiers:
+        - attribute: GENERIC_MAX_HEALTH
+          operation: ADD_NUMBER
+          amount: 8.0
+
+# Crisis Amulet — Regen III only when HP ≤ 30 %, at night, in offhand
+CRISIS_AMULET:
+  displayname: "<dark_red>Crisis Amulet"
+  Mechanics:
+    passive_effect:
+      slot: offhand
+      reapply_ticks: 40
+      potion_effects:
+        - type: REGENERATION
+          amplifier: 2
+      conditions:
+        health_below: 30
+        world_time: night
+      activate_sound: ENTITY_EXPERIENCE_ORB_PICKUP

@@ -1,0 +1,84 @@
+# Amethyst Sword — area heal for all nearby players on right-click
+AMETHYST_SWORD:
+  displayname: "<light_purple>Amethyst Schwert"
+  Mechanics:
+    area_ability:
+      trigger: right_click
+      cooldown: 10
+      radius: 5.0
+      targets: players
+      include_self: true
+      heal_amount: 4.0
+      particle: HEART
+      wave_particle: ENCHANTMENT_TABLE
+      sound: ENTITY_PLAYER_LEVELUP
+
+# Storm Hammer — knocks back all enemies + Slowness on hit
+STORM_HAMMER:
+  displayname: "<aqua>Sturmhammer"
+  Mechanics:
+    area_ability:
+      trigger: on_hit
+      cooldown: 8
+      radius: 4.0
+      targets: enemies
+      include_self: false
+      launch_velocity: 1.2
+      effects:
+        - type: SLOW
+          amplifier: 1
+          duration: 3
+      particle: CLOUD
+      wave_particle: SWEEP_ATTACK
+      sound: ENTITY_IRON_GOLEM_ATTACK
+      sound_target: ENTITY_GENERIC_HURT
+
+# Plague Staff — poisons all nearby entities, drains caster's health
+PLAGUE_STAFF:
+  displayname: "<dark_green>Pestsstab"
+  Mechanics:
+    area_ability:
+      trigger: shift_right_click
+      cooldown: 20
+      radius: 7.0
+      targets: all
+      include_self: false
+      effects:
+        - type: POISON
+          amplifier: 1
+          duration: 6
+        - type: WITHER
+          amplifier: 0
+          duration: 4
+          chance: 0.5
+      self_damage: 4.0
+      conditions:
+        min_targets_required: 1
+      particle: VILLAGER_ANGRY
+      wave_particle: SMOKE_NORMAL
+      sound: ENTITY_WITHER_AMBIENT
+
+# Paladin Shield — heals allies in range, grants them Absorption, slows self
+PALADIN_SHIELD:
+  displayname: "<yellow>Paladin-Schild"
+  Mechanics:
+    area_ability:
+      trigger: shift_right_click
+      cooldown: 15
+      radius: 6.0
+      targets: allies
+      include_self: false
+      max_targets: 5
+      heal_amount: 6.0
+      effects:
+        - type: ABSORPTION
+          amplifier: 0
+          duration: 8
+      self_effects:
+        - type: SLOW
+          amplifier: 1
+          duration: 4
+      conditions:
+        min_targets_required: 1
+      particle: HEART
+      sound: BLOCK_BEACON_ACTIVATE
