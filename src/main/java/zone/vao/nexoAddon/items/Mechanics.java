@@ -78,11 +78,8 @@ public class Mechanics {
         this.repair = new Repair(ration, fixedAmount, materials, nexoIds, materialsBlacklist, nexoIdsBlacklist);
     }
 
-  public void setBigMining(int radius, int depth, boolean switchable, List<Material> materials, Sound sound) {
-    this.bigMining = new BigMining(radius, depth, switchable, materials, sound);
-  }
-    public void setBigMining(int radius, int depth, boolean switchable, List<Material> materials) {
-        this.bigMining = new BigMining(radius, depth, switchable, materials);
+    public void setBigMining(int radius, int depth, boolean switchable, List<Material> materials, Sound sound) {
+        this.bigMining = new BigMining(radius, depth, switchable, materials, sound);
     }
 
     public void setVeinMiner(int distance, boolean toggleable, boolean sameMaterial, int limit,
@@ -90,16 +87,13 @@ public class Mechanics {
         this.veinMiner = new VeinMiner(distance, toggleable, sameMaterial, limit, materials, nexoIds);
     }
 
-  public void setBedrockBreak(int hardness, double probability, int durabilityCost, boolean disableOnFirstLayer, Sound sound) {
-    this.bedrockBreak = new BedrockBreak(hardness, probability, durabilityCost, disableOnFirstLayer, sound);
-  }
     public void setTimber(int limit, int maxHeight, boolean toggleable, boolean breakLeaves, List<Material> logs,
         List<String> nexoLogs) {
         this.timber = new Timber(limit, maxHeight, toggleable, breakLeaves, logs, nexoLogs);
     }
 
-    public void setBedrockBreak(int hardness, double probability, int durabilityCost, boolean disableOnFirstLayer) {
-        this.bedrockBreak = new BedrockBreak(hardness, probability, durabilityCost, disableOnFirstLayer);
+    public void setBedrockBreak(int hardness, double probability, int durabilityCost, boolean disableOnFirstLayer, Sound sound) {
+        this.bedrockBreak = new BedrockBreak(hardness, probability, durabilityCost, disableOnFirstLayer, sound);
     }
 
     public void setAura(Particle particle, String type, String formula) {

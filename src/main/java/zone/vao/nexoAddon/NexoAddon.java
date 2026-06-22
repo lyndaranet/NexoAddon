@@ -4,8 +4,6 @@ import co.aikar.commands.PaperCommandManager;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import com.jeff_media.customblockdata.CustomBlockData;
-//import com.jeff_media.updatechecker.UpdateCheckSource;
-//import com.jeff_media.updatechecker.UpdateChecker;
 import com.nexomc.nexo.api.NexoBlocks;
 import com.nexomc.nexo.api.NexoItems;
 import com.nexomc.protectionlib.ProtectionLib;
@@ -56,41 +54,13 @@ import java.util.*;
 @Getter
 public final class NexoAddon extends JavaPlugin {
 
-  @Getter
-  public static NexoAddon instance;
-  public static boolean isDebug = false;
-  public Set<File> nexoFiles = new HashSet<>();
-  public Map<String, Components> components = new HashMap<>();
-  public Map<String, Mechanics> mechanics = new HashMap<>();
-  private Map<String, ItemStack> skulls = new HashMap<>();
-  public Map<UUID, BossBarUtil> bossBars = new HashMap<>();
-  public FileConfiguration globalConfig;
-  public PopulatorsConfigUtil populatorsConfig;
-  public List<Ore> ores = new ArrayList<>();
-  public final OrePopulator orePopulator = new OrePopulator();
-  public Map<String, List<CustomOrePopulator>> worldPopulators = new HashMap<>();
-  public Map<String, String> jukeboxLocations = new HashMap<>();
-  public Map<String, Integer> customBlockLights = new HashMap<>();
-  public BlockHardnessHandler blockHardnessHandler;
-  public PacketListenerCommon packetListenerCommon;
-  public FoliaLib foliaLib;
-  private boolean packeteventsLoaded = false;
-  private boolean mythicMobsLoaded = false;
-  private ParticleEffectManager particleEffectManager;
-  private final Map<Location, WrappedTask> particleTasks = new HashMap<>();
-  @Setter
-  private Boolean isDecay = false;
-    // TODO: Shrink and grow mechanics
-    // TODO: Insta Obsidian mechanic
-    // TODO: Infinite water bucket mechanic / lava bucket / ender pearl
-    // TODO: Poke Balls
-
     @Getter
-    private static NexoAddon instance;
+    public static NexoAddon instance;
+    public static boolean isDebug = false;
     public Set<File> nexoFiles = new HashSet<>();
     public Map<String, Components> components = new HashMap<>();
     public Map<String, Mechanics> mechanics = new HashMap<>();
-    private final Map<String, ItemStack> skulls = new HashMap<>();
+    private Map<String, ItemStack> skulls = new HashMap<>();
     public Map<UUID, BossBarUtil> bossBars = new HashMap<>();
     public FileConfiguration globalConfig;
     public PopulatorsConfigUtil populatorsConfig;
@@ -109,6 +79,7 @@ public final class NexoAddon extends JavaPlugin {
     @Setter
     private Boolean isDecay = false;
 
+
     @Override
     public void onLoad() {
         instance = this;
@@ -122,26 +93,13 @@ public final class NexoAddon extends JavaPlugin {
         }
     }
 
-  @Override
-  public void onEnable() {
-    foliaLib = new FoliaLib(this);
-    ProtectionLib.init(this);
-    saveDefaultConfig();
-    globalConfig = getConfig();
-    isDebug = globalConfig.getBoolean("debug", false);
-    foliaLib = new FoliaLib(this);
-    initializeCommandManager();
-    if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null &&
-        Bukkit.getPluginManager().getPlugin("MythicMobs").isEnabled())
-    {
-      mythicMobsLoaded = true;
-    }
     @Override
     public void onEnable() {
         foliaLib = new FoliaLib(this);
         ProtectionLib.init(this);
         saveDefaultConfig();
         globalConfig = getConfig();
+        isDebug = globalConfig.getBoolean("debug", false);
         foliaLib = new FoliaLib(this);
         initializeCommandManager();
         if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null &&
@@ -161,17 +119,17 @@ public final class NexoAddon extends JavaPlugin {
     public void onDisable() {
         bossBars.values().forEach(BossBarUtil::removeBar);
         clearPopulators();
-        if (packeteventsLoaded) {
-            PacketEvents.getAPI().getEventManager().unregisterListener(packetListenerCommon);
-        }
+      if (packeteventsLoaded) {
+        PacketEvents.getAPI().getEventManager().unregisterListener(packetListenerCommon);
+      }
         RecipeManager.clearRegisteredRecipes();
         for (Location shiftblock : BlockUtil.processedShiftblocks) {
             PersistentDataContainer pdc = new CustomBlockData(shiftblock.getBlock(), this);
             String targetBlock = pdc.get(new NamespacedKey(NexoAddon.getInstance(), "shiftblock_target"),
                 PersistentDataType.STRING);
-            if (targetBlock == null || NexoBlocks.blockData(targetBlock) == null) {
-                continue;
-            }
+          if (targetBlock == null || NexoBlocks.blockData(targetBlock) == null) {
+            continue;
+          }
 
             shiftblock.getBlock().setBlockData(NexoBlocks.blockData(targetBlock));
 
@@ -186,27 +144,10 @@ public final class NexoAddon extends JavaPlugin {
         return new CustomChunkGenerator(orePopulator);
     }
 
-  public void reload() {
-    reloadConfig();
-    globalConfig = getConfig();
-    isDebug = globalConfig.getBoolean("debug", false);
-    foliaLib.getScheduler().runNextTick(init -> {
-      clearPopulators();
-      initializePopulators();
-    });
-    reloadNexoFiles();
-    loadComponentsIfSupported();
-    bossBars.values().forEach(BossBarUtil::removeBar);
-    RecipeManager.clearRegisteredRecipes();
-    RecipesUtil.loadRecipes();
-    SkullUtil.applyTextures();
-    particleEffectManager.stopAuraEffectTask();
-    foliaLib.getScheduler().runLater(() -> {
-      particleEffectManager.startAuraEffectTask();
-    }, 2L);
     public void reload() {
         reloadConfig();
         globalConfig = getConfig();
+        isDebug = globalConfig.getBoolean("debug", false);
         foliaLib.getScheduler().runNextTick(init -> {
             clearPopulators();
             initializePopulators();
@@ -235,21 +176,16 @@ public final class NexoAddon extends JavaPlugin {
         PaperCommandManager manager = new PaperCommandManager(this);
         manager.registerCommand(new NexoAddonCommand());
 
-    manager.getCommandCompletions().registerCompletion("nexoItems", c -> {
-      Set<String> itemNames = NexoItems.itemNames();
-      return new ArrayList<>(itemNames);
-    });
-
-    manager.getCommandCompletions().registerCompletion("sounds", c -> {
-
-      return Registry.SOUNDS.keyStream()
-          .map(NamespacedKey::toString)
-          .toList();
-    });
-  }
         manager.getCommandCompletions().registerCompletion("nexoItems", c -> {
             Set<String> itemNames = NexoItems.itemNames();
             return new ArrayList<>(itemNames);
+        });
+
+        manager.getCommandCompletions().registerCompletion("sounds", c -> {
+
+            return Registry.SOUNDS.keyStream()
+                .map(NamespacedKey::toString)
+                .toList();
         });
     }
 
@@ -265,9 +201,9 @@ public final class NexoAddon extends JavaPlugin {
             ores.forEach(orePopulator::addOre);
             Set<World> worldsToAddPopulator = new HashSet<>();
             orePopulator.getOres().forEach(ore -> {
-                if (ore.getNexoFurniture() != null) {
-                    return;
-                }
+              if (ore.getNexoFurniture() != null) {
+                return;
+              }
                 worldsToAddPopulator.addAll(ore.getWorlds());
             });
 
@@ -299,16 +235,17 @@ public final class NexoAddon extends JavaPlugin {
     private void initializeMetrics() {
 
         Metrics metrics = new Metrics(this, 24168);
-        metrics.addCustomChart(new Metrics.SimplePie("marketplace",
-            () -> "%%__POLYMART__%%".equals("1") ? "polymart" : "spigot"));
+        metrics.addCustomChart(
+            new Metrics.SimplePie("marketplace", () -> "%%__POLYMART__%%".equals("1") ? "polymart" : "spigot"));
 
-//    if(getGlobalConfig().getBoolean("update_checker", true))
-//      new UpdateChecker(this, UpdateCheckSource.POLYMART, "6950")
-//          .setDownloadLink(6950)
-//          .checkEveryXHours(24)
-//          .setNotifyOpsOnJoin(true)
-//          .setDonationLink("https://buymeacoffee.com/naimad")
-//          .checkNow();
+      if (getGlobalConfig().getBoolean("update_checker", true)) {
+        new UpdateChecker(this, UpdateCheckSource.POLYMART, "6950")
+            .setDownloadLink(6950)
+            .checkEveryXHours(24)
+            .setNotifyOpsOnJoin(true)
+            .setDonationLink("https://buymeacoffee.com/naimad")
+            .checkNow();
+      }
     }
 
     private void reloadNexoFiles() {
@@ -339,9 +276,9 @@ public final class NexoAddon extends JavaPlugin {
 
     public void removePopulators(World world) {
         worldPopulators.forEach((worldName, populators) -> {
-            if (!world.getName().equals(worldName)) {
-                return;
-            }
+          if (!world.getName().equals(worldName)) {
+            return;
+          }
             populators.forEach(populator -> {
                 if (world.getPopulators().remove(populator)) {
                     getLogger().info("Populator removed from world: " + worldName);
