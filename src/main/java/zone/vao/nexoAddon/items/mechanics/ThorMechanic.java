@@ -2,12 +2,12 @@ package zone.vao.nexoAddon.items.mechanics;
 
 import com.nexomc.nexo.api.NexoItems;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -39,9 +39,12 @@ public record ThorMechanic(String trigger, int lightningBoltsAmount, double rand
 
     public static class ThorMechanicListener implements Listener {
 
+        private static final Object LOCK = new Object();
         private static final Map<UUID, Long> cooldowns = new HashMap<>();
-        // PlayerInteractEvent fires twice per right-click on the same tick; used to drop the duplicate.
-        private static final Map<UUID, Integer> lastInteractTick = new HashMap<>();
+        // PlayerInteractEvent can fire twice per right-click (not always on the same tick);
+        // used to drop the duplicate dispatch instead of treating it as a second real use.
+        private static final Map<UUID, Long> lastInteractMillis = new HashMap<>();
+        private static final long DUPLICATE_EVENT_WINDOW_MS = 100;
 
         @EventHandler
         public void onInteract(PlayerInteractEvent event) {
@@ -61,6 +64,9 @@ public record ThorMechanic(String trigger, int lightningBoltsAmount, double rand
                 return;
             }
 
+            NexoAddon.getInstance().getLogger().info("[thor-debug] " + player.getName()
+                + " -> onInteract action=" + action);
+
             switch (mechanic.trigger()) {
                 case TRIGGER_RIGHT_CLICK -> {
                     if (!right) return;
@@ -76,14 +82,10 @@ public record ThorMechanic(String trigger, int lightningBoltsAmount, double rand
                 }
             }
 
-            // Drop the duplicate PlayerInteractEvent dispatch on the same tick to avoid a false
-            // cooldown message flashing on every successful use.
-            int tick = Bukkit.getServer().getCurrentTick();
-            Integer prev = lastInteractTick.get(player.getUniqueId());
-            if (prev != null && prev == tick) {
-                return;
-            }
-            lastInteractTick.put(player.getUniqueId(), tick);
+            // Prevent the item's vanilla use action (e.g. throwing) firing alongside/instead of
+            // our cooldown-gated ability, regardless of whether the cast actually goes through.
+            event.setCancelled(true);
+            event.setUseItemInHand(Event.Result.DENY);
 
             strike(player, mechanic);
         }
@@ -91,11 +93,29 @@ public record ThorMechanic(String trigger, int lightningBoltsAmount, double rand
         private void strike(Player player, ThorMechanic mechanic) {
             UUID id = player.getUniqueId();
             long now = System.currentTimeMillis();
-            long remainingMs = remainingCooldown(id, mechanic.cooldownSeconds(), now);
-            if (remainingMs > 0) {
-                long remainingSeconds = (remainingMs + 999) / 1000;
-                actionBar(player, "<red>Noch <bold>" + remainingSeconds + "s</bold> Cooldown!");
-                return;
+
+            synchronized (LOCK) {
+                Long lastInteract = lastInteractMillis.get(id);
+                if (lastInteract != null && now - lastInteract < DUPLICATE_EVENT_WINDOW_MS) {
+                    NexoAddon.getInstance().getLogger().info("[thor-debug] " + player.getName()
+                        + " -> dropped duplicate event (" + (now - lastInteract) + "ms since last)");
+                    return;
+                }
+                lastInteractMillis.put(id, now);
+
+                long remainingMs = remainingCooldown(id, mechanic.cooldownSeconds(), now);
+                if (remainingMs > 0) {
+                    long remainingSeconds = (remainingMs + 999) / 1000;
+                    NexoAddon.getInstance().getLogger().info("[thor-debug] " + player.getName()
+                        + " -> on cooldown, " + remainingMs + "ms remaining");
+                    actionBar(player, "<red>Noch <bold>" + remainingSeconds + "s</bold> Cooldown!");
+                    return;
+                }
+                if (mechanic.cooldownSeconds() > 0) {
+                    cooldowns.put(id, now);
+                }
+                NexoAddon.getInstance().getLogger().info("[thor-debug] " + player.getName()
+                    + " -> casting (cooldownSeconds=" + mechanic.cooldownSeconds() + ")");
             }
 
             Location target = targetLocation(player, mechanic.range());
@@ -120,9 +140,6 @@ public record ThorMechanic(String trigger, int lightningBoltsAmount, double rand
 
             if (mechanic.sound() != null) {
                 player.playSound(target, mechanic.sound(), 1.0f, 1.0f);
-            }
-            if (mechanic.cooldownSeconds() > 0) {
-                cooldowns.put(id, now);
             }
         }
 

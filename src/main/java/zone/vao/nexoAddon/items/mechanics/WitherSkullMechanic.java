@@ -2,10 +2,10 @@ package zone.vao.nexoAddon.items.mechanics;
 
 import com.nexomc.nexo.api.NexoItems;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.WitherSkull;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Fires a wither skull in the player's look direction, optionally charged (blue, more destructive).
- * Gated by a per-player cooldown. One config block ({@code Mechanics.witherskull}).
+ * Fires a wither skull in the player's look direction, optionally charged (blue, more destructive). Gated by a
+ * per-player cooldown. One config block ({@code Mechanics.witherskull}).
  */
 public record WitherSkullMechanic(String trigger, boolean charged, int cooldownSeconds, double velocity,
                                   @Nullable Sound sound) {
@@ -34,15 +34,19 @@ public record WitherSkullMechanic(String trigger, boolean charged, int cooldownS
 
     public static class WitherSkullMechanicListener implements Listener {
 
+        private static final Object LOCK = new Object();
         private static final Map<UUID, Long> cooldowns = new HashMap<>();
-        // PlayerInteractEvent fires twice per right-click on the same tick; used to drop the duplicate.
-        private static final Map<UUID, Integer> lastInteractTick = new HashMap<>();
+        // PlayerInteractEvent can fire twice per right-click (not always on the same tick);
+        // used to drop the duplicate dispatch instead of treating it as a second real use.
+        private static final Map<UUID, Long> lastInteractMillis = new HashMap<>();
+        private static final long DUPLICATE_EVENT_WINDOW_MS = 100;
 
         @EventHandler
         public void onInteract(PlayerInteractEvent event) {
             if (event.getHand() != EquipmentSlot.HAND) {
                 return;
             }
+
             Action action = event.getAction();
             boolean right = action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
             boolean left = action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK;
@@ -56,29 +60,34 @@ public record WitherSkullMechanic(String trigger, boolean charged, int cooldownS
                 return;
             }
 
+            NexoAddon.getInstance().getLogger().info("[witherskull-debug] " + player.getName()
+                                                     + " -> onInteract action=" + action);
+
             switch (mechanic.trigger()) {
                 case TRIGGER_RIGHT_CLICK -> {
-                    if (!right) return;
+                    if (!right) {
+                        return;
+                    }
                 }
                 case TRIGGER_SHIFT_RIGHT_CLICK -> {
-                    if (!right || !player.isSneaking()) return;
+                    if (!right || !player.isSneaking()) {
+                        return;
+                    }
                 }
                 case TRIGGER_LEFT_CLICK -> {
-                    if (!left) return;
+                    if (!left) {
+                        return;
+                    }
                 }
                 default -> {
                     return;
                 }
             }
 
-            // Drop the duplicate PlayerInteractEvent dispatch on the same tick to avoid a false
-            // cooldown message flashing on every successful shot.
-            int tick = Bukkit.getServer().getCurrentTick();
-            Integer prev = lastInteractTick.get(player.getUniqueId());
-            if (prev != null && prev == tick) {
-                return;
-            }
-            lastInteractTick.put(player.getUniqueId(), tick);
+            // Prevent the item's vanilla use action (e.g. throwing) firing alongside/instead of
+            // our cooldown-gated ability, regardless of whether the cast actually goes through.
+            event.setCancelled(true);
+            event.setUseItemInHand(Event.Result.DENY);
 
             fire(player, mechanic);
         }
@@ -86,11 +95,31 @@ public record WitherSkullMechanic(String trigger, boolean charged, int cooldownS
         private void fire(Player player, WitherSkullMechanic mechanic) {
             UUID id = player.getUniqueId();
             long now = System.currentTimeMillis();
-            long remainingMs = remainingCooldown(id, mechanic.cooldownSeconds(), now);
-            if (remainingMs > 0) {
-                long remainingSeconds = (remainingMs + 999) / 1000;
-                actionBar(player, "<red>Noch <bold>" + remainingSeconds + "s</bold> Cooldown!");
-                return;
+
+            synchronized (LOCK) {
+                Long lastInteract = lastInteractMillis.get(id);
+                if (lastInteract != null && now - lastInteract < DUPLICATE_EVENT_WINDOW_MS) {
+                    NexoAddon.getInstance().getLogger().info("[witherskull-debug] " + player.getName()
+                                                             + " -> dropped duplicate event (" + (now - lastInteract)
+                                                             + "ms since last)");
+                    return;
+                }
+                lastInteractMillis.put(id, now);
+
+                long remainingMs = remainingCooldown(id, mechanic.cooldownSeconds(), now);
+                if (remainingMs > 0) {
+                    long remainingSeconds = (remainingMs + 999) / 1000;
+                    NexoAddon.getInstance().getLogger().info("[witherskull-debug] " + player.getName()
+                                                             + " -> on cooldown, " + remainingMs + "ms remaining");
+                    actionBar(player, "<red>Noch <bold>" + remainingSeconds + "s</bold> Cooldown!");
+                    return;
+                }
+                if (mechanic.cooldownSeconds() > 0) {
+                    cooldowns.put(id, now);
+                }
+                NexoAddon.getInstance().getLogger().info("[witherskull-debug] " + player.getName()
+                                                         + " -> casting (cooldownSeconds=" + mechanic.cooldownSeconds()
+                                                         + ")");
             }
 
             Vector velocity = player.getEyeLocation().getDirection().normalize().multiply(mechanic.velocity());
@@ -100,9 +129,6 @@ public record WitherSkullMechanic(String trigger, boolean charged, int cooldownS
 
             if (mechanic.sound() != null) {
                 player.playSound(player.getLocation(), mechanic.sound(), 1.0f, 1.0f);
-            }
-            if (mechanic.cooldownSeconds() > 0) {
-                cooldowns.put(id, now);
             }
         }
 
