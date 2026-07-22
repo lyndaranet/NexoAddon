@@ -1,0 +1,21 @@
+# Witherstab — schießt einen Witherkopf in Blickrichtung
+WITHER_STAB:
+  displayname: "<dark_gray>Witherstab"
+  Mechanics:
+    witherskull:
+      trigger: right_click
+      charged: false
+      cooldown: 12
+      velocity: 1.5
+      sound: ENTITY_WITHER_SHOOT
+
+# Wither-Zepter — aufgeladener (blauer) Schädel, längerer Cooldown
+WITHER_ZEPTER:
+  displayname: "<blue>Wither-Zepter"
+  Mechanics:
+    witherskull:
+      trigger: shift_right_click
+      charged: true
+      cooldown: 20
+      velocity: 2.0
+      sound: ENTITY_WITHER_SHOOT

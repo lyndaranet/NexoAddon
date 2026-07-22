@@ -1,0 +1,24 @@
+# Mjölnir — ruft Blitze an der anvisierten Stelle, leicht gestreut
+THOR_HAMMER:
+  displayname: "<yellow>Mjölnir"
+  Mechanics:
+    thor:
+      trigger: right_click
+      lightning_bolts_amount: 2
+      random_location_variation: 2
+      range: 40
+      cooldown: 30
+      visual_only: false
+      sound: ENTITY_LIGHTNING_BOLT_THUNDER
+
+# Donnerstab (Show) — nur optische Blitze ohne Schaden, dichter Schwarm
+DONNERSTAB_SHOW:
+  displayname: "<aqua>Donnerstab"
+  Mechanics:
+    thor:
+      trigger: right_click
+      lightning_bolts_amount: 5
+      random_location_variation: 3
+      range: 30
+      cooldown: 5
+      visual_only: true

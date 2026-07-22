@@ -38,10 +38,15 @@ import zone.vao.nexoAddon.items.mechanics.PassiveEffectMechanic;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ItemConfigUtil {
 
     private static final Set<File> itemFiles = new HashSet<>();
+
+    // Matches a flexible cooldown value: a number with an optional time-unit suffix (e.g. 10, 10s, 5min, 2h, 500ms).
+    private static final Pattern COOLDOWN_PATTERN = Pattern.compile("^(\\d+(?:\\.\\d+)?)([a-z]*)$");
 
     public static Set<File> getItemFiles() {
         itemFiles.clear();
@@ -89,7 +94,8 @@ public class ItemConfigUtil {
             "Components.fertilizer.usable_on")) {
             int growthSpeedup = section.getInt("Components.fertilizer.growth_speedup", 1000);
             List<String> usableOn = section.getStringList("Components.fertilizer.usable_on");
-            component.setFertilizer(growthSpeedup, usableOn, section.getInt("Components.fertilizer.cooldown", 0));
+            component.setFertilizer(growthSpeedup, usableOn,
+                parseCooldownSeconds(section, "Components.fertilizer.cooldown", 0));
         }
     }
 
@@ -172,6 +178,8 @@ public class ItemConfigUtil {
                 loadBowMechanic(itemSection, mechanic);
                 loadDashAbilityMechanic(itemSection, mechanic);
                 loadBlockTriggerLaunchMechanic(itemSection, mechanic);
+                loadWitherSkullMechanic(itemSection, mechanic);
+                loadThorMechanic(itemSection, mechanic);
             });
         }
     }
@@ -631,7 +639,7 @@ public class ItemConfigUtil {
 
         double power = section.getDouble("Mechanics.dash.power", 2.0);
         double verticalBoost = section.getDouble("Mechanics.dash.vertical_boost", 0.5);
-        int cooldown = section.getInt("Mechanics.dash.cooldown", 5);
+        int cooldown = parseCooldownSeconds(section, "Mechanics.dash.cooldown", 5);
         boolean requireSneaking = section.getBoolean("Mechanics.dash.require_sneaking", false);
         String particleType = section.getString("Mechanics.dash.particle.type", "CLOUD");
         int particleAmount = section.getInt("Mechanics.dash.particle.amount", 20);
@@ -779,7 +787,7 @@ public class ItemConfigUtil {
         boolean enabled = section.getBoolean("Mechanics.grappling_hook.enabled", true);
         int maxDistance = section.getInt("Mechanics.grappling_hook.max_distance", 30);
         double pullSpeed = section.getDouble("Mechanics.grappling_hook.pull_speed", 0.8);
-        int cooldown = section.getInt("Mechanics.grappling_hook.cooldown", 3);
+        int cooldown = parseCooldownSeconds(section, "Mechanics.grappling_hook.cooldown", 3);
         String particleType = section.getString("Mechanics.grappling_hook.particle.type", "CRIT");
         int particleAmount = section.getInt("Mechanics.grappling_hook.particle.amount", 3);
         String soundType = section.getString("Mechanics.grappling_hook.sound.type", "ENTITY_FISHING_BOBBER_THROW");
@@ -807,7 +815,7 @@ public class ItemConfigUtil {
         int webMaxDistance = section.getInt("Mechanics.spiderman.web_shot.max_distance", 20);
         double webPullSpeed = section.getDouble("Mechanics.spiderman.web_shot.pull_speed", 1.0);
         double arcBoost = section.getDouble("Mechanics.spiderman.web_shot.arc_boost", 0.4);
-        int webCooldown = section.getInt("Mechanics.spiderman.web_shot.cooldown", 2);
+        int webCooldown = parseCooldownSeconds(section, "Mechanics.spiderman.web_shot.cooldown", 2);
         String particleType = section.getString("Mechanics.spiderman.particle.type", "CLOUD");
         int particleAmount = section.getInt("Mechanics.spiderman.particle.amount", 3);
         String soundType = section.getString("Mechanics.spiderman.sound.type", "ENTITY_FISHING_BOBBER_THROW");
@@ -826,7 +834,7 @@ public class ItemConfigUtil {
             return;
         }
 
-        int cooldownSeconds = section.getInt("Mechanics.on_hit.cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, "Mechanics.on_hit.cooldown", 0);
 
         Particle particles = null;
         String particleRaw = section.getString("Mechanics.on_hit.particles");
@@ -998,7 +1006,7 @@ public class ItemConfigUtil {
 
         String base = "Mechanics.consumable.";
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         boolean consumeItem = section.getBoolean(base + "consume_item", false);
         double instantHeal = section.getDouble(base + "instant_heal", 0.0);
         double instantDamage = section.getDouble(base + "instant_damage", 0.0);
@@ -1069,7 +1077,7 @@ public class ItemConfigUtil {
 
         String base = "Mechanics.area_ability.";
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         double radius = section.getDouble(base + "radius", 5.0);
         String targets = section.getString(base + "targets", "players").toLowerCase();
         boolean includeSelf = section.getBoolean(base + "include_self", true);
@@ -1134,7 +1142,7 @@ public class ItemConfigUtil {
         String base = "Mechanics.teleport.";
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
         String mode = section.getString(base + "mode", "look_direction").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         double distance = section.getDouble(base + "distance", 15.0);
         boolean behindTarget = section.getBoolean(base + "behind_target", false);
 
@@ -1191,7 +1199,7 @@ public class ItemConfigUtil {
 
         String base = "Mechanics.beam.";
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         double range = section.getDouble(base + "range", 10.0);
         double width = section.getDouble(base + "width", 0.4);
         double height = section.getDouble(base + "height", 0.4);
@@ -1254,7 +1262,7 @@ public class ItemConfigUtil {
     /** Parses a {@link ProjectileMechanic} record from the given config base path. */
     private static ProjectileMechanic parseProjectile(ConfigurationSection section, String base) {
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         double range = section.getDouble(base + "range", 20.0);
         double speed = section.getDouble(base + "speed", 1.5);
         double hitRadius = section.getDouble(base + "hit_radius", 0.5);
@@ -1323,7 +1331,7 @@ public class ItemConfigUtil {
 
         String base = "Mechanics.shape_wave.";
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         String shape = section.getString(base + "shape", "cone").toLowerCase();
         int maxTargets = section.getInt(base + "max_targets", 0);
 
@@ -1404,7 +1412,7 @@ public class ItemConfigUtil {
         BowMechanic.SpecialShot specialShot = null;
         if (section.contains(base + "special_shot")) {
             String ss = base + "special_shot.";
-            int cooldownSeconds = section.getInt(ss + "cooldown", 0);
+            int cooldownSeconds = parseCooldownSeconds(section, ss + "cooldown", 0);
             String type = section.getString(ss + "type", "fireball").toLowerCase();
             double yield = section.getDouble(ss + "yield", 2.0);
             boolean incendiary = section.getBoolean(ss + "incendiary", false);
@@ -1456,7 +1464,7 @@ public class ItemConfigUtil {
         String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
         String mode = section.getString(base + "mode", "flight").toLowerCase();
         String direction = section.getString(base + "direction", "look").toLowerCase();
-        int cooldownSeconds = section.getInt(base + "cooldown", 0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
         int durationTicks = section.getInt(base + "duration", 40);
         double speed = section.getDouble(base + "speed", 2.5);
 
@@ -1654,6 +1662,37 @@ public class ItemConfigUtil {
         return list;
     }
 
+    private static void loadWitherSkullMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.witherskull")) {
+            return;
+        }
+        String base = "Mechanics.witherskull.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        boolean charged = section.getBoolean(base + "charged", false);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
+        double velocity = section.getDouble(base + "velocity", 1.5);
+        Sound sound = resolveSound(section.getString(base + "sound"), "witherskull");
+
+        mechanic.setWitherSkullMechanic(trigger, charged, cooldownSeconds, velocity, sound);
+    }
+
+    private static void loadThorMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.thor")) {
+            return;
+        }
+        String base = "Mechanics.thor.";
+        String trigger = section.getString(base + "trigger", "right_click").toLowerCase();
+        int lightningBoltsAmount = section.getInt(base + "lightning_bolts_amount", 1);
+        double randomLocationVariation = section.getDouble(base + "random_location_variation", 0.0);
+        double range = section.getDouble(base + "range", 40.0);
+        int cooldownSeconds = parseCooldownSeconds(section, base + "cooldown", 0);
+        boolean visualOnly = section.getBoolean(base + "visual_only", false);
+        Sound sound = resolveSound(section.getString(base + "sound"), "thor");
+
+        mechanic.setThorMechanic(trigger, lightningBoltsAmount, randomLocationVariation, range, cooldownSeconds,
+            visualOnly, sound);
+    }
+
     private static double numberOr(Object raw, double def) {
         return (raw instanceof Number n) ? n.doubleValue() : def;
     }
@@ -1736,6 +1775,49 @@ public class ItemConfigUtil {
         }
         NexoAddon.getInstance().getLogger().warning("Invalid Particle for " + context + ": " + raw);
         return null;
+    }
+
+    /**
+     * Parses a flexible cooldown value into whole seconds. Accepts a bare number (interpreted as
+     * seconds, e.g. {@code 10}) or a number with a time-unit suffix: {@code ms}, {@code s},
+     * {@code m}/{@code min}, {@code h}, {@code d} (e.g. {@code 10s}, {@code 5min}, {@code 2h},
+     * {@code 500ms}). Sub-second values are rounded to the nearest second. Falls back to
+     * {@code defaultSeconds} when the key is unset or the value cannot be parsed.
+     */
+    private static int parseCooldownSeconds(ConfigurationSection section, String path, int defaultSeconds) {
+        Object raw = section.get(path);
+        if (raw == null) {
+            return defaultSeconds;
+        }
+        if (raw instanceof Number number) {
+            // Bare number = seconds (backward compatible with all existing configs).
+            return Math.max(0, (int) Math.round(number.doubleValue()));
+        }
+        String text = raw.toString().trim().toLowerCase().replace(" ", "");
+        if (text.isEmpty()) {
+            return defaultSeconds;
+        }
+        Matcher matcher = COOLDOWN_PATTERN.matcher(text);
+        if (!matcher.matches()) {
+            NexoAddon.getInstance().getLogger().warning("Invalid cooldown value at " + path + ": " + raw
+                + " (expected e.g. 10, 10s, 5min, 2h, 500ms) — using " + defaultSeconds + "s");
+            return defaultSeconds;
+        }
+        double amount = Double.parseDouble(matcher.group(1));
+        String unit = matcher.group(2);
+        double seconds = switch (unit) {
+            case "", "s", "sec", "secs", "second", "seconds" -> amount;
+            case "ms", "milli", "millis", "millisecond", "milliseconds" -> amount / 1000.0;
+            case "m", "min", "mins", "minute", "minutes" -> amount * 60.0;
+            case "h", "hr", "hrs", "hour", "hours" -> amount * 3600.0;
+            case "d", "day", "days" -> amount * 86400.0;
+            default -> {
+                NexoAddon.getInstance().getLogger().warning("Unknown cooldown unit at " + path + ": '" + unit
+                    + "' — treating " + amount + " as seconds");
+                yield amount;
+            }
+        };
+        return Math.max(0, (int) Math.round(seconds));
     }
 
     private static Sound resolveSound(String raw, String context) {

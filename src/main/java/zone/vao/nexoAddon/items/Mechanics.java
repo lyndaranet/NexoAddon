@@ -68,6 +68,8 @@ public class Mechanics {
     private BowMechanic bowMechanic;
     private DashMechanic dashMechanic;
     private BlockTriggerLaunchMechanic blockTriggerLaunchMechanic;
+    private WitherSkullMechanic witherSkullMechanic;
+    private ThorMechanic thorMechanic;
 
     public Mechanics(String id) {
         this.id = id;
@@ -365,6 +367,17 @@ public class Mechanics {
             activateParticles, activateSound, showActionBar);
     }
 
+    public void setWitherSkullMechanic(String trigger, boolean charged, int cooldownSeconds, double velocity,
+        Sound sound) {
+        this.witherSkullMechanic = new WitherSkullMechanic(trigger, charged, cooldownSeconds, velocity, sound);
+    }
+
+    public void setThorMechanic(String trigger, int lightningBoltsAmount, double randomLocationVariation,
+        double range, int cooldownSeconds, boolean visualOnly, Sound sound) {
+        this.thorMechanic = new ThorMechanic(trigger, lightningBoltsAmount, randomLocationVariation, range,
+            cooldownSeconds, visualOnly, sound);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -438,6 +451,8 @@ public class Mechanics {
         registerListener(new DashMechanic.DashMechanicListener(), plugin);
         DashMechanic.DashMechanicListener.startRechargeTask();
         registerListener(new BlockTriggerLaunchMechanic.BlockTriggerLaunchMechanicListener(), plugin);
+        registerListener(new WitherSkullMechanic.WitherSkullMechanicListener(), plugin);
+        registerListener(new ThorMechanic.ThorMechanicListener(), plugin);
     }
 
     private static void registerListener(Listener listener, NexoAddon plugin) {
