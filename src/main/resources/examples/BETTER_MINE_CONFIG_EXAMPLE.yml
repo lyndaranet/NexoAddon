@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────
+#  BetterMine – Mechanic Example Config
+#  Baut in dein Nexo-Item-File ein (z. B. items/tools.yml).
+# ─────────────────────────────────────────────────────────────
+
+better_mining_pickaxe:          # <-- deine Nexo-Item-ID
+  displayname: "<gold>Spitzhacke der Fülle"
+  material: DIAMOND_PICKAXE
+  Mechanics:
+    better_mine:
+      # Mechanic aktivieren?
+      enabled: true
+
+      # Baut gelistete Blöcke per Haste schneller ab.
+      # Haste wird in Vanilla-20%-Stufen gerundet (percentage=25 -> Haste I).
+      faster_mining:
+        enabled: true
+        percentage: 25.0
+        blocks:
+          - OBSIDIAN
+          - CRYING_OBSIDIAN
+          - ANCIENT_DEBRIS
+
+      # Chance auf zusätzliche Drops beim Abbau gelisteter Blöcke.
+      # multiplier ist ein Multiplikator auf die bereits berechneten Drops (inkl. Fortune/Silk Touch).
+      bonus_drops:
+        enabled: true
+        chance: 15.0
+        multiplier: 2.0
+        blocks:
+          - DIAMOND_ORE
+          - DEEPSLATE_DIAMOND_ORE
+          - EMERALD_ORE
+
+# Beispiel: nur faster_mining, kein bonus_drops
+example_haste_only_pickaxe:
+  displayname: "<aqua>Flinke Spitzhacke"
+  material: IRON_PICKAXE
+  Mechanics:
+    better_mine:
+      enabled: true
+      faster_mining:
+        enabled: true
+        percentage: 40.0
+        blocks:
+          - STONE
+          - DEEPSLATE
+
+# ─────────────────────────────────────────────────────────────
+#  Hinweise:
+#  • Beide Sub-Effekte sind unabhängig voneinander togglebar (eigenes enabled).
+#  • Leere/fehlende Blocklisten -> der jeweilige Effekt greift nirgends, kein Crash.
+#  • bonus_drops wirkt additiv auf die bereits fertig berechneten Drops (Fortune/Silk Touch inklusive).
+#  • Ein bereits aktiver, stärkerer Haste-Effekt (z. B. Beacon/Trank) wird nicht abgeschwächt.
+# ─────────────────────────────────────────────────────────────

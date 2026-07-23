@@ -23,6 +23,7 @@ Werkzeug-Mechaniken, die das Abbau-/Ernteverhalten erweitern.
 | [SandSmelt](sandsmelt.md) | Baut Sand-Blöcke ab und droppt direkt Glas statt Sand. |
 | [GlassBreaker](glassbreaker.md) | Baut Glasblöcke sofort ab, ganz ohne Abbauzeit. |
 | [WideHoe](widehoe.md) | Pflügt beim Rechtsklick ein ganzes quadratisches Areal statt nur einem Block. |
+| [BetterMine](better_mine.md) | Schnelleres Abbauen (Haste) und Chance auf Bonus-Drops, je mit eigener Blockliste. |
 
 ## Custom-Block & Furniture Verhalten
 
@@ -115,7 +116,7 @@ Custom-Waffen und Skill-Items.
 
 ---
 
-**Alle 51 Mechaniken** dieses Ordners sind 1:1 aus den Loader-Methoden in
+**Alle 52 Mechaniken** dieses Ordners sind 1:1 aus den Loader-Methoden in
 `src/main/java/zone/vao/nexoAddon/utils/ItemConfigUtil.java` sowie den zugehörigen Klassen in
 `src/main/java/zone/vao/nexoAddon/items/mechanics/` dokumentiert – Config-Keys und Defaults sind
 daher verbindlich. Bekannte Code-Eigenheiten (z. B. tote Config-Keys, nicht durchgesetzte Filter)

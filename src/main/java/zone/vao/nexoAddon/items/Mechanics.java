@@ -70,6 +70,7 @@ public class Mechanics {
     private BlockTriggerLaunchMechanic blockTriggerLaunchMechanic;
     private WitherSkullMechanic witherSkullMechanic;
     private ThorMechanic thorMechanic;
+    private BetterMineMechanic betterMineMechanic;
 
     public Mechanics(String id) {
         this.id = id;
@@ -378,6 +379,11 @@ public class Mechanics {
             cooldownSeconds, visualOnly, sound);
     }
 
+    public void setBetterMineMechanic(boolean enabled, BetterMineMechanic.FasterMining fasterMining,
+        BetterMineMechanic.BonusDrops bonusDrops) {
+        this.betterMineMechanic = new BetterMineMechanic(enabled, fasterMining, bonusDrops);
+    }
+
     public static void registerListeners(NexoAddon plugin) {
 
         registerListener(new AutoCatch.AutoCatchListener(), plugin);
@@ -453,6 +459,7 @@ public class Mechanics {
         registerListener(new BlockTriggerLaunchMechanic.BlockTriggerLaunchMechanicListener(), plugin);
         registerListener(new WitherSkullMechanic.WitherSkullMechanicListener(), plugin);
         registerListener(new ThorMechanic.ThorMechanicListener(), plugin);
+        registerListener(new BetterMineMechanic.BetterMineMechanicListener(), plugin);
     }
 
     private static void registerListener(Listener listener, NexoAddon plugin) {

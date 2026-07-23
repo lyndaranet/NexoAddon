@@ -24,6 +24,7 @@ import zone.vao.nexoAddon.items.Components;
 import zone.vao.nexoAddon.items.Mechanics;
 import zone.vao.nexoAddon.items.mechanics.AreaAbilityMechanic;
 import zone.vao.nexoAddon.items.mechanics.AreaMiningMechanic;
+import zone.vao.nexoAddon.items.mechanics.BetterMineMechanic;
 import zone.vao.nexoAddon.items.mechanics.BlockTriggerLaunchMechanic;
 import zone.vao.nexoAddon.items.mechanics.BeamMechanic;
 import zone.vao.nexoAddon.items.mechanics.BowMechanic;
@@ -180,6 +181,7 @@ public class ItemConfigUtil {
                 loadBlockTriggerLaunchMechanic(itemSection, mechanic);
                 loadWitherSkullMechanic(itemSection, mechanic);
                 loadThorMechanic(itemSection, mechanic);
+                loadBetterMineMechanic(itemSection, mechanic);
             });
         }
     }
@@ -1691,6 +1693,45 @@ public class ItemConfigUtil {
 
         mechanic.setThorMechanic(trigger, lightningBoltsAmount, randomLocationVariation, range, cooldownSeconds,
             visualOnly, sound);
+    }
+
+    private static void loadBetterMineMechanic(ConfigurationSection section, Mechanics mechanic) {
+        if (!section.contains("Mechanics.better_mine")) {
+            return;
+        }
+        String base = "Mechanics.better_mine.";
+        boolean enabled = section.getBoolean(base + "enabled", true);
+
+        BetterMineMechanic.FasterMining fasterMining = null;
+        if (section.contains(base + "faster_mining")) {
+            boolean fasterMiningEnabled = section.getBoolean(base + "faster_mining.enabled", true);
+            double percentage = section.getDouble(base + "faster_mining.percentage", 0.0);
+            List<Material> blocks = new ArrayList<>();
+            for (String s : section.getStringList(base + "faster_mining.blocks")) {
+                Material material = Material.matchMaterial(s);
+                if (material != null) {
+                    blocks.add(material);
+                }
+            }
+            fasterMining = new BetterMineMechanic.FasterMining(fasterMiningEnabled, percentage, blocks);
+        }
+
+        BetterMineMechanic.BonusDrops bonusDrops = null;
+        if (section.contains(base + "bonus_drops")) {
+            boolean bonusDropsEnabled = section.getBoolean(base + "bonus_drops.enabled", true);
+            double chance = section.getDouble(base + "bonus_drops.chance", 0.0);
+            double multiplier = section.getDouble(base + "bonus_drops.multiplier", 2.0);
+            List<Material> blocks = new ArrayList<>();
+            for (String s : section.getStringList(base + "bonus_drops.blocks")) {
+                Material material = Material.matchMaterial(s);
+                if (material != null) {
+                    blocks.add(material);
+                }
+            }
+            bonusDrops = new BetterMineMechanic.BonusDrops(bonusDropsEnabled, chance, multiplier, blocks);
+        }
+
+        mechanic.setBetterMineMechanic(enabled, fasterMining, bonusDrops);
     }
 
     private static double numberOr(Object raw, double def) {
